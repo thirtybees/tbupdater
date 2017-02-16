@@ -60,7 +60,9 @@ class TbUpdater extends Module
                 'module_name' => $this->name,
             ]);
 
-            $this->checkForUpdates();
+            if (Configuration::get(self::AUTO_UPDATE)) {
+                $this->checkForUpdates();
+            }
         }
     }
 
@@ -72,6 +74,8 @@ class TbUpdater extends Module
      */
     public function install()
     {
+        Configuration::updateValue(self::AUTO_UPDATE, true);
+
         return parent::install();
     }
 
@@ -187,7 +191,9 @@ class TbUpdater extends Module
      */
     protected function postProcess()
     {
-        if (Tools::isSubmit('submitOptionsconfiguration')) {
+        if (Tools::isSubmit('checkForUpdate')) {
+            $this->checkForUpdates(true);
+        } elseif (Tools::isSubmit('submitOptionsconfiguration')) {
             $this->postProcessGeneralOptions();
         }
     }
@@ -202,12 +208,22 @@ class TbUpdater extends Module
 
     /**
      * Check for module updates
+     *
+     * @param bool $force Force check
+     *
+     * @return bool Indicates whether the update was successful
+     *
+     * @since 1.0.0
      */
-    protected function checkForUpdates()
+    protected function checkForUpdates($force = false)
     {
+        if (Tools::getValue('doNotAutoUpdate')) {
+            return true;
+        }
+
         $lastCheck = (int) Configuration::get(self::LAST_CHECK);
 
-        if ($lastCheck < (time() - self::CHECK_INTERVAL) || Tools::getValue($this->name.'CheckUpdate')) {
+        if ($force || $lastCheck < (time() - self::CHECK_INTERVAL) || Tools::getValue($this->name.'CheckUpdate')) {
             $guzzle = new GuzzleHttp\Client([
                 'base_uri' => 'https://api.thirtybees.com',
                 'http_errors' => false,
@@ -216,7 +232,18 @@ class TbUpdater extends Module
 
             try {
                 $updates = (string) $guzzle->get('/updates/1.0/updates.json')->getBody();
-                file_put_contents(__DIR__.'/data/updates.json', $updates);
+                $versionInfo = json_decode($updates);
+                if (version_compare($versionInfo->modules->tbupdater->patch->version, $this->version, '>')) {
+                    $zipLocation = _PS_MODULE_DIR_.$this->name.'.zip';
+                    @unlink(_PS_MODULE_DIR_.$this->name.'.zip');
+                    $guzzle->get($versionInfo->modules->tbupdater->patch->binary, ['sink' => $zipLocation]);
+                    if (@file_exists($zipLocation)) {
+                        $this->extractArchive($zipLocation);
+                    } else {
+                        // We have an outdated URL, reset last check
+                        Configuration::updateGlobalValue(self::LAST_CHECK, 0);
+                    }
+                }
             } catch (Exception $e) {
                 return false;
             }
@@ -317,6 +344,7 @@ class TbUpdater extends Module
         $success = false;
         if (substr($file, -4) == '.zip') {
             if (Tools::ZipExtract($file, $tmpFolder) && file_exists($tmpFolder.DIRECTORY_SEPARATOR.$this->name)) {
+                $this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$this->name.'backup');
                 if (@rename(_PS_MODULE_DIR_.$this->name, _PS_MODULE_DIR_.$this->name.'backup') && @rename($tmpFolder.DIRECTORY_SEPARATOR.$this->name, _PS_MODULE_DIR_.$this->name)) {
                     $this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$this->name.'backup');
                     $success = true;
@@ -327,19 +355,10 @@ class TbUpdater extends Module
                     }
                 }
             }
-        } else {
-            require_once(_PS_TOOL_DIR_.'tar/Archive_Tar.php');
-            $archive = new Archive_Tar($file);
-            if ($archive->extract($tmpFolder)) {
-                $zipFolders = scandir($tmpFolder);
-                if ($archive->extract(_PS_MODULE_DIR_)) {
-                    $success = true;
-                }
-            }
         }
 
         if (!$success) {
-            $this->addError($this->l('There was an error while extracting the update (file may be corrupted).'));
+            $this->addError($this->l('There was an error while extracting the module update(file may be corrupted).'));
             // Force a new check
             Configuration::updateGlobalValue(self::LAST_CHECK, 0);
         } else {
@@ -353,6 +372,7 @@ class TbUpdater extends Module
         }
 
         @unlink($file);
+        @unlink(_PS_MODULE_DIR_.$this->name.'backup');
         $this->recursiveDeleteOnDisk($tmpFolder);
 
         if ($success) {
