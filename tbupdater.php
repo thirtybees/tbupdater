@@ -17,33 +17,48 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  */
 
+use function GuzzleHttp\Promise\settle;
+use TbUpdaterModule\SemVer\Expression;
+use TbUpdaterModule\SemVer\Version;
+
 if (!defined('_TB_VERSION_')) {
     exit;
 }
 
+require_once __DIR__.'/classes/autoload.php';
+
 /**
  * Class TbUpdater
+ *
+ * @since 1.0.0
  */
 class TbUpdater extends Module
 {
     const AUTO_UPDATE = 'TBUPDATER_AUTO_UPDATE';
     const LAST_CHECK = 'TBUPDATER_LAST_CHECK';
     const LAST_UPDATE = 'TBUPDATER_LAST_UPDATE';
+    const CHANNEL = 'TBUPDATER_CHANNEL';
 
-    const DOWNLOAD_URL = 'https://api.thirtybees.com/updates/1.0/updates.json';
+    const BASE_URL = 'https://api.thirtybees.com/updates/';
 
     const CHECK_INTERVAL = 86400;
+
+    const LATEST_CORE_PATCH = 'TB_LATEST_CORE_PATCH';
+    const LATEST_CORE_MINOR = 'TB_LATEST_CORE_MINOR';
+    const LATEST_CORE_MAJOR = 'TB_LATEST_CORE_MAJOR';
 
     public $baseUrl = '';
 
     /**
      * ModSelfUpdate constructor.
+     *
+     * @since 1.0.0
      */
     public function __construct()
     {
         $this->name = 'tbupdater';
         $this->tab = 'administration';
-        $this->version = '1.0.0';
+        $this->version = '1.0.1';
         $this->author = 'thirty bees';
         $this->bootstrap = true;
         $this->need_instance = 1;
@@ -71,10 +86,13 @@ class TbUpdater extends Module
      *
      * @return bool Whether this module was successfully installed
      * @throws PrestaShopException
+     *
+     * @since 1.0.0
      */
     public function install()
     {
-        Configuration::updateValue(self::AUTO_UPDATE, true);
+        Configuration::updateGlobalValue(self::AUTO_UPDATE, true);
+        Configuration::updateGlobalValue(self::CHANNEL, 'stable');
 
         return parent::install();
     }
@@ -84,11 +102,14 @@ class TbUpdater extends Module
      *
      * @return bool Whether this module was successfully uninstalled
      * @throws PrestaShopException
+     *
+     * @since 1.0.0
      */
     public function uninstall()
     {
         Configuration::deleteByName(self::AUTO_UPDATE);
         Configuration::deleteByName(self::LAST_CHECK);
+        Configuration::deleteByName(self::CHANNEL);
 
         return parent::uninstall();
     }
@@ -99,6 +120,10 @@ class TbUpdater extends Module
      * @param string $key    Configuration key
      * @param mixed  $values Configuration values, can be string or array with id_lang as key
      * @param bool   $html   Contains HTML
+     *
+     * @return void
+     *
+     * @since 1.0.0
      */
     public function updateAllValue($key, $values, $html = false)
     {
@@ -113,6 +138,8 @@ class TbUpdater extends Module
      * Retrieves the Shop ID from the cookie
      *
      * @return int Shop ID
+     *
+     * @since 1.0.0
      */
     public function getShopId()
     {
@@ -125,6 +152,8 @@ class TbUpdater extends Module
      * Get module configuration page
      *
      * @return string Configuration page HTML
+     *
+     * @since 1.0.0
      */
     public function getContent()
     {
@@ -141,6 +170,8 @@ class TbUpdater extends Module
      * Render the General options form
      *
      * @return string HTML
+     *
+     * @since 1.0.0
      */
     protected function renderGeneralOptions()
     {
@@ -159,6 +190,8 @@ class TbUpdater extends Module
      * Get available general options
      *
      * @return array General options
+     *
+     * @since 1.0.0
      */
     protected function getModuleOptions()
     {
@@ -188,6 +221,8 @@ class TbUpdater extends Module
      * Process module settings
      *
      * @return void
+     *
+     * @since 1.0.0
      */
     protected function postProcess()
     {
@@ -200,6 +235,8 @@ class TbUpdater extends Module
 
     /**
      * Process General Options
+     *
+     * @since 1.0.0
      */
     protected function postProcessGeneralOptions()
     {
@@ -217,35 +254,90 @@ class TbUpdater extends Module
      */
     protected function checkForUpdates($force = false)
     {
-        if (Tools::getValue('doNotAutoUpdate')) {
-            return true;
-        }
-
         $lastCheck = (int) Configuration::get(self::LAST_CHECK);
 
         if ($force || $lastCheck < (time() - self::CHECK_INTERVAL) || Tools::getValue($this->name.'CheckUpdate')) {
             $guzzle = new GuzzleHttp\Client([
                 'base_uri' => 'https://api.thirtybees.com',
-                'http_errors' => false,
                 'verify' => _PS_TOOL_DIR_.'cacert.pem',
             ]);
 
-            try {
-                $updates = (string) $guzzle->get('/updates/1.0/updates.json')->getBody();
-                $versionInfo = json_decode($updates);
-                if (version_compare($versionInfo->modules->tbupdater->patch->version, $this->version, '>')) {
-                    $zipLocation = _PS_MODULE_DIR_.$this->name.'.zip';
-                    @unlink(_PS_MODULE_DIR_.$this->name.'.zip');
-                    $guzzle->get($versionInfo->modules->tbupdater->patch->binary, ['sink' => $zipLocation]);
-                    if (@file_exists($zipLocation)) {
-                        $this->extractArchive($zipLocation);
-                    } else {
-                        // We have an outdated URL, reset last check
-                        Configuration::updateGlobalValue(self::LAST_CHECK, 0);
+            $channel = Configuration::get(self::CHANNEL);
+            if (!in_array($channel, ['stable', 'beta', 'dev'])) {
+                $channel = 'stable';
+            }
+
+            $currentVersion = new Version(_TB_VERSION_);
+            $countryModules = Tools::strtolower(Configuration::get('PS_LOCALE_COUNTRY'));
+
+            $promises = [
+                'updates' => $guzzle->getAsync("/updates/channel/{$channel}.json"),
+                'modules' => $guzzle->getAsync("/updates/modules/all.json"),
+                'country' => $guzzle->getAsync("/updates/modules/{$countryModules}.json"),
+            ];
+
+            $results = settle($promises)->wait();
+
+            $cache = [];
+
+            if (isset($results['updates']['value']) && $results['updates']['value'] instanceof GuzzleHttp\Psr7\Response) {
+                $updates = (string) $results['updates']['value']->getBody();
+                $updates = json_decode($updates, true);
+                if ($updates) {
+                    $versions = array_keys($updates);
+
+                    $patchRange = new Expression('~'._TB_VERSION_);
+                    $minorRange = new Expression('~'.$currentVersion->getMajor().'.'.$currentVersion->getMinor());
+                    $majorRange = new Expression('*');
+
+                    if ($maxPatchSatisfying = $patchRange->maxSatisfying($versions)->getVersion()) {
+                        Configuration::updateGlobalValue(self::LATEST_CORE_PATCH, $maxPatchSatisfying);
+                    }
+                    if ($maxMinorSatisfying = $minorRange->maxSatisfying($versions)->getVersion()) {
+                        Configuration::updateGlobalValue(self::LATEST_CORE_MINOR, $maxMinorSatisfying);
+                    }
+                    if ($maxMajorSatisfying = $majorRange->maxSatisfying($versions)->getVersion()) {
+                        Configuration::updateGlobalValue(self::LATEST_CORE_MAJOR, $maxMajorSatisfying);
                     }
                 }
-            } catch (Exception $e) {
-                return false;
+            }
+
+            if (isset($results['modules']['value']) && $results['modules']['value'] instanceof GuzzleHttp\Psr7\Response) {
+                $modules = (string) $results['modules']['value']->getBody();
+                $modules = json_decode($modules, true);
+                if ($modules && is_array($modules)) {
+                    foreach ($modules as $moduleName => &$module) {
+                        if (isset($module['versions']) && $highestVersion = self::findHighestVersion(_TB_VERSION_, $module['versions'])) {
+                            $module['versions'] = [
+                                'latest' => $highestVersion,
+                                'binary' => $module['versions'][$highestVersion]['binary'],
+                            ];
+
+                            $cache[$moduleName] = $module;
+                        }
+                    }
+                }
+            }
+
+            if (isset($results['country']['value']) && $results['country']['value'] instanceof GuzzleHttp\Psr7\Response) {
+                $countryModules = (string) $results['country']['value']->getBody();
+                $countryModules = json_decode($countryModules, true);
+                if ($countryModules && is_array($countryModules)) {
+                    foreach ($countryModules as $moduleName => &$module) {
+                        if (isset($module['versions']) && $highestVersion = self::findHighestVersion(_TB_VERSION_, $module['versions'])) {
+                            $module['versions'] = [
+                                'latest' => $highestVersion,
+                                'binary' => $module['versions'][$highestVersion]['binary'],
+                            ];
+
+                            $cache[$moduleName] = $module;
+                        }
+                    }
+                }
+            }
+
+            if (is_array($cache) && !empty($cache)) {
+                @file_put_contents(__DIR__.'/cache/modules.json', json_encode($cache, JSON_PRETTY_PRINT));
             }
 
             Configuration::updateGlobalValue(self::LAST_CHECK, time());
@@ -258,6 +350,8 @@ class TbUpdater extends Module
      * Add information message
      *
      * @param string $message Message
+     *
+     * @since 1.0.0
      */
     protected function addInformation($message)
     {
@@ -272,6 +366,8 @@ class TbUpdater extends Module
      * Add confirmation message
      *
      * @param string $message Message
+     *
+     * @since 1.0.0
      */
     protected function addConfirmation($message)
     {
@@ -286,6 +382,8 @@ class TbUpdater extends Module
      * Add warning message
      *
      * @param string $message Message
+     *
+     * @since 1.0.0
      */
     protected function addWarning($message)
     {
@@ -300,6 +398,8 @@ class TbUpdater extends Module
      * Add error message
      *
      * @param string $message Message
+     *
+     * @since 1.0.0
      */
     protected function addError($message)
     {
@@ -316,7 +416,10 @@ class TbUpdater extends Module
      * Validate GitHub repository
      *
      * @param string $repo Repository: username/repository
+     *
      * @return bool Whether the repository is valid
+     *
+     * @since 1.0.0
      */
     protected function validateRepo($repo)
     {
@@ -328,7 +431,10 @@ class TbUpdater extends Module
      *
      * @param string $file     File location
      * @param bool   $redirect Whether there should be a redirection after extracting
+     *
      * @return bool
+     *
+     * @since 1.0.0
      */
     protected function extractArchive($file, $redirect = true)
     {
@@ -389,6 +495,8 @@ class TbUpdater extends Module
      * Delete folder recursively
      *
      * @param string $dir Directory
+     *
+     * @since 1.0.0
      */
     protected function recursiveDeleteOnDisk($dir)
     {
@@ -410,5 +518,55 @@ class TbUpdater extends Module
             reset($objects);
             rmdir($dir);
         }
+    }
+
+    /**
+     * Find the highest version of a module
+     *
+     * @param string $tbVersion      Current TB version
+     * @param array  $moduleVersions Module version info
+     *
+     * @return bool|string Version number
+     *                     `false` if not found
+     *
+     * @since 1.0.0
+     */
+    protected function findHighestVersion($tbVersion, $moduleVersions)
+    {
+        if (!$tbVersion || !is_array($moduleVersions)) {
+            return false;
+        }
+
+        $tbVersion = new Version($tbVersion);
+
+        $versions = [];
+        foreach ($moduleVersions as $versionNumber => $versionInfo) {
+            $range = new Expression($versionInfo['range']);
+            if ($tbVersion->satisfies($range)) {
+                $versions[] = $versionNumber;
+            }
+        }
+
+        usort($versions, ['self', 'compareVersionReverse']);
+        if (!empty($versions)) {
+            return $versions[0];
+        }
+
+        return false;
+    }
+
+    /**
+     * Reverse compare version
+     *
+     * @param string $a
+     * @param string $b
+     *
+     * @return bool
+     *
+     * @since 1.0.0
+     */
+    protected function compareVersionReverse($a, $b)
+    {
+        return Version::lt($a, $b);
     }
 }
