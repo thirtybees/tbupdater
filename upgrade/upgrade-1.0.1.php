@@ -6,5 +6,7 @@ if (!defined('_TB_VERSION_')) {
 
 function upgrade_module_1_0_1($module)
 {
-	return true;
+    Configuration::deleteByName('TBUPDATER_AUTO_UPDATE');
+
+    return true;
 }
