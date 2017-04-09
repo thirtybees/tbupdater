@@ -57,7 +57,7 @@ class TbUpdater extends Module
     {
         $this->name = 'tbupdater';
         $this->tab = 'administration';
-        $this->version = '1.0.1';
+        $this->version = '1.1.0';
         $this->author = 'thirty bees';
         $this->bootstrap = true;
         $this->need_instance = 1;
@@ -141,90 +141,11 @@ class TbUpdater extends Module
      */
     public function getContent()
     {
-        $this->postProcess();
-
         $this->context->smarty->assign([
             'baseUrl' => $this->baseUrl,
         ]);
 
-        return $this->display(__FILE__, 'views/templates/admin/configure.tpl').$this->renderGeneralOptions();
-    }
-
-    /**
-     * Render the General options form
-     *
-     * @return string HTML
-     *
-     * @since 1.0.0
-     */
-    protected function renderGeneralOptions()
-    {
-        $helper = new HelperOptions();
-        $helper->id = 1;
-        $helper->module = $this;
-        $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
-        $helper->title = $this->displayName;
-        $helper->show_toolbar = false;
-
-        return $helper->generateOptions(array_merge($this->getModuleOptions()));
-    }
-
-    /**
-     * Get available general options
-     *
-     * @return array General options
-     *
-     * @since 1.0.0
-     */
-    protected function getModuleOptions()
-    {
-        return [
-            'module' => [
-                'title'  => $this->l('Settings'),
-                'icon'   => 'icon-cogs',
-                'fields' => [
-                    static::AUTO_UPDATE => [
-                        'title'      => $this->l('Auto update'),
-                        'desc'       => $this->l('Automatically update this module'),
-                        'type'       => 'bool',
-                        'name'       => static::AUTO_UPDATE,
-                        'value'      => Configuration::get(static::AUTO_UPDATE),
-                        'validation' => 'isBool',
-                        'cast'       => 'intval',
-                    ],
-                ],
-                'submit' => [
-                    'title' => $this->l('Save'),
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Process module settings
-     *
-     * @return void
-     *
-     * @since 1.0.0
-     */
-    protected function postProcess()
-    {
-        if (Tools::isSubmit('checkForUpdate')) {
-            $this->checkForUpdates(true);
-        } elseif (Tools::isSubmit('submitOptionsconfiguration')) {
-            $this->postProcessGeneralOptions();
-        }
-    }
-
-    /**
-     * Process General Options
-     *
-     * @since 1.0.0
-     */
-    protected function postProcessGeneralOptions()
-    {
-        return false;
+        return $this->display(__FILE__, 'views/templates/admin/configure.tpl');
     }
 
     /**
@@ -239,10 +160,9 @@ class TbUpdater extends Module
      */
     public function checkForUpdates($force = false)
     {
-        $force = true;
         $lastCheck = (int) Configuration::get(static::LAST_CHECK);
 
-        if ($force || $lastCheck < (time() - static::CHECK_INTERVAL) || Tools::getValue($this->name.'CheckUpdate')) {
+        if ($force || $lastCheck < (time() - static::CHECK_INTERVAL) || Tools::getValue($this->name.'CheckUpdate') || !@file_exists(__DIR__.'/cache/modules.json')) {
             $guzzle = new GuzzleHttp\Client([
                 'base_uri' => static::BASE_URL,
                 'verify'   => _PS_TOOL_DIR_.'cacert.pem',
@@ -291,11 +211,10 @@ class TbUpdater extends Module
                 $modules = json_decode($modules, true);
                 if ($modules && is_array($modules)) {
                     foreach ($modules as $moduleName => &$module) {
-                        if (isset($module['versions']) && $highestVersion = static::findHighestVersion(_TB_VERSION_, $module['versions'][$channel])) {
-                            $module['versions'] = [
-                                'latest' => $highestVersion,
-                                'binary' => $module['versions'][$highestVersion]['binary'],
-                            ];
+                        if (isset($module['versions'][$channel]) && $highestVersion = static::findHighestVersion(_TB_VERSION_, $module['versions'][$channel])) {
+                            $module['version'] = $highestVersion;
+                            $module['binary'] = $module['versions'][$channel][$highestVersion]['binary'];
+                            unset($module['versions']);
 
                             $cache[$moduleName] = $module;
                         }
@@ -309,11 +228,10 @@ class TbUpdater extends Module
                 $localModules = json_decode($localModules, true);
                 if ($localModules && is_array($localModules)) {
                     foreach ($localModules as $moduleName => &$module) {
-                        if (isset($module['versions']) && $highestVersion = static::findHighestVersion(_TB_VERSION_, $module['versions'])) {
-                            $module['versions'] = [
-                                'latest' => $highestVersion,
-                                'binary' => $module['versions'][$highestVersion]['binary'],
-                            ];
+                        if (isset($module['versions'][$channel]) && $highestVersion = static::findHighestVersion(_TB_VERSION_, $module['versions'][$channel])) {
+                            $module['version'] = $highestVersion;
+                            $module['binary'] = $module['versions'][$channel][$highestVersion]['binary'];
+                            unset($module['versions']);
 
                             $cache[$moduleName] = $module;
                         }
@@ -322,7 +240,7 @@ class TbUpdater extends Module
             }
 
             if (is_array($cache) && !empty($cache)) {
-                @file_put_contents(__DIR__.'/cache/modules.json', json_encode($cache, JSON_PRETTY_PRINT));
+                @file_put_contents(__DIR__.'/cache/modules.json', json_encode($cache, JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES));
 
                 return $cache;
             }
@@ -333,7 +251,14 @@ class TbUpdater extends Module
         return false;
     }
 
-    public function getCachedModuleInfo()
+    /**
+     * Get the cached info about modules
+     *
+     * @return array|bool|false|mixed
+     *
+     * @since 1.0.0
+     */
+    public function getCachedModulesInfo()
     {
         $modules = json_decode(@file_get_contents(__DIR__.'/cache/modules.json'), true);
         if (!$modules) {
@@ -344,6 +269,111 @@ class TbUpdater extends Module
         }
 
         return $modules;
+    }
+
+    /**
+     * Install a module by name
+     *
+     * @param string $moduleName
+     *
+     * @return bool
+     *
+     * @since 1.0.0
+     */
+    public function installModule($moduleName)
+    {
+        $moduleInfo = $this->getModuleInfo($moduleName);
+        if (!$moduleInfo || !isset($moduleInfo['binary'])) {
+            return false;
+        }
+
+        if (!$this->downloadModuleFromLocation($moduleName, $moduleInfo['binary'])) {
+            return false;
+        }
+
+        if (!class_exists($moduleName)) {
+            require _PS_MODULE_DIR_.$moduleName.DIRECTORY_SEPARATOR.$moduleName.'.php';
+        }
+
+        $module = Module::getInstanceByName($moduleName);
+
+        if ($module->install()) {
+            Tools::redirectAdmin(Context::getContext()->link->getAdminLink('AdminModules', true).'&configure='.$moduleName);
+        }
+
+        return false;
+    }
+
+    /**
+     * Update a module by name
+     *
+     * @param string $moduleName
+     *
+     * @return bool
+     *
+     * @since 1.0.0
+     */
+    public function updateModule($moduleName)
+    {
+        $moduleInfo = $this->getModuleInfo($moduleName);
+        if (!$moduleInfo || !isset($moduleInfo['binary'])) {
+            return false;
+        }
+
+        if (!$this->downloadModuleFromLocation($moduleName, $moduleInfo['binary'])) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Install module from location
+     *
+     * @param string $location
+     *
+     * @return bool
+     *
+     * @since 1.0.0
+     */
+    protected function downloadModuleFromLocation($moduleName, $location)
+    {
+        $zipLocation = _PS_MODULE_DIR_.$moduleName.'.zip';
+        if (@!file_exists($zipLocation)) {
+            $guzzle = new \GuzzleHttp\Client([
+                'timeout' => 30,
+                'verify'  => _PS_TOOL_DIR_.'cacert.pem',
+            ]);
+            try {
+                $guzzle->get($location, ['sink' => $zipLocation]);
+            } catch (Exception $e) {
+                return false;
+            }
+        }
+        if (@file_exists($zipLocation)) {
+            return $this->extractModuleArchive($moduleName, $zipLocation, false);
+        }
+
+        return false;
+    }
+
+    /**
+     * Get module info
+     *
+     * @param string $moduleName
+     *
+     * @return bool|mixed
+     *
+     * @since 1.0.0
+     */
+    public function getModuleInfo($moduleName)
+    {
+        $cache = $this->getCachedModulesInfo();
+        if (!is_array($cache) || !in_array($moduleName, array_keys($cache))) {
+            return false;
+        }
+
+        return $cache[$moduleName];
     }
 
     /**
@@ -427,19 +457,20 @@ class TbUpdater extends Module
     }
 
     /**
-     * Extract module archive
+     * Extracts a module archive to the `modules` folder
      *
-     * @param string $file     File location
-     * @param bool   $redirect Whether there should be a redirection after extracting
+     * @param string $moduleName Module name
+     * @param string $file     File source location
+     * @param bool   $redirect Whether there should be a redirection to the BO module page after extracting
      *
      * @return bool
      *
      * @since 1.0.0
      */
-    protected function extractArchive($file, $redirect = true)
+    protected function extractModuleArchive($moduleName, $file, $redirect = true)
     {
         $zipFolders = [];
-        $tmpFolder = _PS_MODULE_DIR_.'selfupdate'.md5(time());
+        $tmpFolder = _PS_MODULE_DIR_.$moduleName.md5(time());
 
         if (@!file_exists($file)) {
             $this->addError($this->l('Module archive could not be downloaded'));
@@ -449,22 +480,15 @@ class TbUpdater extends Module
 
         $success = false;
         if (substr($file, -4) == '.zip') {
-            if (Tools::ZipExtract($file, $tmpFolder) && file_exists($tmpFolder.DIRECTORY_SEPARATOR.$this->name)) {
-                $this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$this->name.'backup');
-                if (@rename(_PS_MODULE_DIR_.$this->name, _PS_MODULE_DIR_.$this->name.'backup') && @rename($tmpFolder.DIRECTORY_SEPARATOR.$this->name, _PS_MODULE_DIR_.$this->name)) {
-                    $this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$this->name.'backup');
+            if (Tools::ZipExtract($file, $tmpFolder) && file_exists($tmpFolder.DIRECTORY_SEPARATOR.$moduleName)) {
+                if (@rename($tmpFolder.DIRECTORY_SEPARATOR.$moduleName, _PS_MODULE_DIR_.$moduleName)) {
                     $success = true;
-                } else {
-                    if (file_exists(_PS_MODULE_DIR_.$this->name.'backup')) {
-                        $this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$this->name);
-                        @rename(_PS_MODULE_DIR_.$this->name.'backup', _PS_MODULE_DIR_.$this->name);
-                    }
                 }
             }
         }
 
         if (!$success) {
-            $this->addError($this->l('There was an error while extracting the module update(file may be corrupted).'));
+            $this->addError($this->l('There was an error while extracting the module file (file may be corrupted).'));
             // Force a new check
             Configuration::updateGlobalValue(static::LAST_CHECK, 0);
         } else {
@@ -478,7 +502,7 @@ class TbUpdater extends Module
         }
 
         @unlink($file);
-        @unlink(_PS_MODULE_DIR_.$this->name.'backup');
+        @unlink(_PS_MODULE_DIR_.$moduleName.'backup');
         $this->recursiveDeleteOnDisk($tmpFolder);
 
         if ($success) {

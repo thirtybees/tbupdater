@@ -1,48 +1,54 @@
 {
     "beesblog": {
         "displayName": {
+            "en-us": "thirty bees blog"
+        },
+        "description": {
             "en-us": "Blog module for thirty bees"
         },
-        "versions": {
-            "latest": "1.0.3",
-            "binary": "https:\/\/github.com\/thirtybees\/beesblog\/releases\/download\/1.0.0\/v1.0.0-beesblog.zip"
-        }
+        "version": "1.0.3",
+        "binary": "https://github.com/thirtybees/beesblog/releases/download/1.0.0/v1.0.0-beesblog.zip"
     },
     "paypal": {
         "displayName": {
+            "en-us": "PayPal"
+        },
+        "description": {
             "en-us": "PayPal module for thirty bees"
         },
-        "versions": {
-            "latest": "1.0.0",
-            "binary": "https:\/\/github.com\/thirtybees\/paypal\/releases\/download\/4.0.0\/v4.0.0-paypal.zip"
-        }
+        "version": "1.0.0",
+        "binary": "https://github.com/thirtybees/paypal/releases/download/4.0.0/v4.0.0-paypal.zip"
     },
     "mailchimp": {
         "displayName": {
+            "en-us": "MailChimp"
+        },
+        "description": {
             "en-us": "MailChimp module for thirty bees"
         },
-        "versions": {
-            "latest": "1.1.0",
-            "binary": "https:\/\/github.com\/thirtybees\/mailchimp\/releases\/download\/1.1.0\/v1.1.0-mailchimp.zip"
-        }
+        "version": "1.1.0",
+        "binary": "https://github.com/thirtybees/mailchimp/releases/download/1.1.0/v1.1.0-mailchimp.zip"
     },
     "stripe": {
         "displayName": {
+            "en-us": "Stripe"
+        },
+        "description": {
             "en-us": "Stripe module for thirty bees"
         },
-        "versions": {
-            "latest": "1.0.0",
-            "binary": "https:\/\/github.com\/thirtybees\/stripe\/releases\/download\/1.0.0\/v1.0.0-stripe.zip"
-        }
+        "version": "1.0.1",
+        "binary": "https://github.com/thirtybees/stripe/releases/download/1.0.1/stripe-v1.0.1.zip"
     },
     "myparcel": {
         "displayName": {
+            "en-us": "MyParcel",
+            "nl-nl": "MyParcel"
+        },
+        "description": {
             "en-us": "MyParcel module for thirty bees",
             "nl-nl": "MyParcel module voor thirty bees"
         },
-        "versions": {
-            "latest": "2.0.0",
-            "binary": "https:\/\/github.com\/firstred\/myparcel\/releases\/download\/2.0.0\/v2.0.0-myparcel.zip"
-        }
+        "version": "2.0.0",
+        "binary": "https://github.com/firstred/myparcel/releases/download/2.0.0/v2.0.0-myparcel.zip"
     }
 }
