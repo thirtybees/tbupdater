@@ -500,12 +500,14 @@ class TbUpdater extends Module
         $success = false;
         if (substr($file, -4) == '.zip') {
             if (Tools::ZipExtract($file, $tmpFolder) && file_exists($tmpFolder.DIRECTORY_SEPARATOR.$moduleName)) {
-                if (!ConfigurationTest::testDir(_PS_MODULE_DIR_.$moduleName, true, $swag, true)) {
-                    $this->addError(sprintf($this->l('Could not update module `%s`: module directory not writable.'), $moduleName));
+                if (file_exists(_PS_MODULE_DIR_.$moduleName)) {
+                    if (!ConfigurationTest::testDir(_PS_MODULE_DIR_.$moduleName, true, $swag, true)) {
+                        $this->addError(sprintf($this->l('Could not update module `%s`: module directory not writable.'), $moduleName));
 
-                    return false;
+                        return false;
+                    }
+                    $this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$moduleName);
                 }
-                $this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$moduleName);
                 if (@rename($tmpFolder.DIRECTORY_SEPARATOR.$moduleName, _PS_MODULE_DIR_.$moduleName)) {
                     $success = true;
                 }
