@@ -254,17 +254,36 @@ class TbUpdater extends Module
     /**
      * Get the cached info about modules
      *
+     * @param string|null $locale IETF Locale
+     *                            If the locale does not exist it will
+     *                            fall back onto en-us
+     *
      * @return array|bool|false|mixed
      *
      * @since 1.0.0
      */
-    public function getCachedModulesInfo()
+    public function getCachedModulesInfo($locale = null)
     {
         $modules = json_decode(@file_get_contents(__DIR__.'/cache/modules.json'), true);
         if (!$modules) {
             $modules = $this->checkForUpdates(true);
             if (!$modules) {
                 return false;
+            }
+        }
+
+        if ($locale) {
+            foreach ($modules as &$module) {
+                if (isset($module['displayName'][Tools::strtolower($locale)])) {
+                    $module['displayName'] = $module['displayName'][Tools::strtolower($locale)];
+                } else {
+                    $module['displayName'] = $module['displayName']['en-us'];
+                }
+                if (isset($module['description'][Tools::strtolower($locale)])) {
+                    $module['description'] = $module['description'][Tools::strtolower($locale)];
+                } else {
+                    $module['description'] = $module['description'][Tools::strtolower($locale)];
+                }
             }
         }
 
@@ -481,6 +500,12 @@ class TbUpdater extends Module
         $success = false;
         if (substr($file, -4) == '.zip') {
             if (Tools::ZipExtract($file, $tmpFolder) && file_exists($tmpFolder.DIRECTORY_SEPARATOR.$moduleName)) {
+                if (!ConfigurationTest::testDir(_PS_MODULE_DIR_.$moduleName, true, $swag, true)) {
+                    $this->addError(sprintf($this->l('Could not update module `%s`: module directory not writable.'), $moduleName));
+
+                    return false;
+                }
+                $this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$moduleName);
                 if (@rename($tmpFolder.DIRECTORY_SEPARATOR.$moduleName, _PS_MODULE_DIR_.$moduleName)) {
                     $success = true;
                 }
