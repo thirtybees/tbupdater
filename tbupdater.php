@@ -768,7 +768,7 @@ class TbUpdater extends Module
             );
         }
 
-        if (Tools::isSubmit('putUnderMaintenance') && version_compare(_PS_VERSION_, '1.5.0.0', '>=')) {
+        if (Tools::isSubmit('putUnderMaintenance') && version_compare(_TB_VERSION_, '1.5.0.0', '>=')) {
             foreach (Shop::getCompleteListOfShopsID() as $idShop) {
                 Configuration::updateValue('PS_SHOP_ENABLE', 0, false, null, (int) $idShop);
             }

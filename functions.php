@@ -58,6 +58,7 @@ function rewriteSettingsFile($baseUrls = null, $theme = null, $arrayDB = null)
         $defines['_RIJNDAEL_IV_'] = addslashes(_RIJNDAEL_IV_);
     }
     $defines['_PS_VERSION_'] = addslashes(_PS_VERSION_);
+    $defines['_TB_VERSION_'] = addslashes(_TB_VERSION_);
     $content = "<?php\n\n";
     foreach ($defines as $k => $value) {
         $content .= 'define(\''.$k.'\', \''.addslashes($value).'\');'."\n";

@@ -193,7 +193,7 @@ class AjaxProcessor
     public function ajaxProcessUpgradeNow()
     {
         $this->nextDesc = $this->l('Starting upgrade...');
-        preg_match('#([0-9]+\.[0-9]+)(?:\.[0-9]+){1,2}#', _PS_VERSION_, $matches);
+        preg_match('#([0-9]+\.[0-9]+)(?:\.[0-9]+){1,2}#', _TB_VERSION_, $matches);
 
         $this->next = 'upgradeComplete';
         $this->nextDesc = $this->l('Shop deactivated. Now downloading... (this can take a while)');
@@ -230,13 +230,6 @@ class AjaxProcessor
                 }
             }
         }
-
-        if (UpgraderTools::getConfig(UpgraderTools::DISABLE_OVERRIDES)) {
-            Configuration::updateGlobalValue('PS_DISABLE_OVERRIDES', true);
-        }
-        if (UpgraderTools::getConfig(UpgraderTools::DISABLE_CUSTOM_MODULES)) {
-            Configuration::updateGlobalValue('PS_DISABLE_NON_NATIVE_MODULE', true);
-        }
     }
 
     /**
@@ -253,7 +246,7 @@ class AjaxProcessor
                 $this->upgrader = Upgrader::getInstance();
             }
             // regex optimization
-            preg_match('#([0-9]+\.[0-9]+)(?:\.[0-9]+){1,2}#', _PS_VERSION_, $matches);
+            preg_match('#([0-9]+\.[0-9]+)(?:\.[0-9]+){1,2}#', _TB_VERSION_, $matches);
 
             $this->nextQuickInfo[] = sprintf($this->l('Downloading from %s and %s'), $this->upgrader->coreLink, $this->upgrader->extraLink);
             $this->nextQuickInfo[] = sprintf($this->l('Files will be saved to %s and %s'), $this->getCoreFilePath());
@@ -1479,7 +1472,7 @@ class AjaxProcessor
             include_once(SETTINGS_FILE);
 
             // include_once(DEFINES_FILE);
-            $oldversion = _PS_VERSION_;
+            $oldversion = _TB_VERSION_;
         } else {
             $this->next = 'error';
             $this->nextQuickInfo[] = $this->l('The config/settings.inc.php file was not found.');
@@ -2444,11 +2437,8 @@ class AjaxProcessor
         // line shorter
         $separator = addslashes(DIRECTORY_SEPARATOR);
         $translationDir = $separator.'translations'.$separator;
-        if (version_compare(_PS_VERSION_, '1.5.0.5', '<')) {
-            $regexModule = '#'.$separator.'modules'.$separator.'.*'.$separator.'('.implode('|', $this->installedLanguagesIso).')\.php#';
-        } else {
-            $regexModule = '#'.$separator.'modules'.$separator.'.*'.$translationDir.'('.implode('|', $this->installedLanguagesIso).')\.php#';
-        }
+        $regexModule = '#'.$separator.'modules'.$separator.'.*'.$translationDir.'('.implode('|', $this->installedLanguagesIso).')\.php#';
+
 
         if (preg_match($regexModule, $file)) {
             $type = 'module';
@@ -2496,11 +2486,6 @@ class AjaxProcessor
                 break;
             case 'module':
                 $varName = '_MODULE';
-                // if current version is before 1.5.0.5, module has no translations dir
-                if (version_compare(_PS_VERSION_, '1.5.0.5', '<') && (version_compare($this->installVersion, '1.5.0.5', '>'))) {
-                    $dest = str_replace(DIRECTORY_SEPARATOR.'translations', '', $dest);
-                }
-
                 break;
             case 'pdf':
                 $varName = '_LANGPDF';
@@ -2599,7 +2584,7 @@ class AjaxProcessor
 
         $rand = dechex(mt_rand(0, min(0xffffffff, mt_getrandmax())));
         $date = date('Ymd-His');
-        $version = _PS_VERSION_;
+        $version = _TB_VERSION_;
         $this->backupName = "v{$version}_{$date}-{$rand}";
         $this->backupFilesFilename = 'auto-backupfiles_'.$this->backupName.'.zip';
         $this->backupDbFilename = 'auto-backupdb_'.$this->backupName.'.sql';
