@@ -771,6 +771,7 @@ class AjaxProcessor
     public function ajaxProcessUpgradeFiles()
     {
         $this->nextParams = $this->currentParams;
+        $upgradeTheme = UpgraderTools::getConfig(UpgraderTools::UPGRADE_DEFAULT_THEME);
 
         if (!isset($this->nextParams['fileActions'])) {
             // list saved in $this->toUpgradeFileList
@@ -789,10 +790,12 @@ class AjaxProcessor
                             'action' => $fileAction['action'],
                         ];
                     } else {
-                        $addFilesForUpgrade[] = [
-                            'path'   => $path,
-                            'action' => $fileAction['action'],
-                        ];
+                        if (!($fileAction['action'] === 'add' && !$upgradeTheme && substr($path, 0, 31) === '/themes/community-theme-default')) {
+                            $addFilesForUpgrade[] = [
+                                'path'   => $path,
+                                'action' => $fileAction['action'],
+                            ];
+                        }
                     }
                 }
                 // Save in an array in `fileActions`
