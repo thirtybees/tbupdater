@@ -317,6 +317,10 @@
       $upgradeNow.replaceWith('<span id="upgradeNow" class="button-autoupgrade">Migrating to thirty bees...</span>');
     }
 
+    function afterTestDirs() {
+
+    }
+
     function afterUpgradeComplete(res) {
       var params = res.nextParams;
       var $pleaseWait = $('#pleaseWait');
@@ -417,6 +421,7 @@
       afterUpdateConfig: afterUpdateConfig,
       isAllConditionOk: isAllConditionOk,
       afterUpgradeNow: afterUpgradeNow,
+      afterTestDirs: afterTestDirs,
       afterUpgradeComplete: afterUpgradeComplete,
       afterError: afterError,
       afterRollback: afterRollback,

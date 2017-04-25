@@ -249,10 +249,10 @@ class AjaxProcessor
                 $this->nextQuickInfo[] = sprintf($this->l('The directory `%s` is not writable.'), $dir);
                 $this->nextErrors[] = sprintf($this->l('The directory `%s` is not writable.'), $dir);
                 $this->next = 'error';
-                $this->nextErrors[] = sprintf($this->l('The directory `%s` is not writable.'), $dir);
-            }
+                $this->nextDesc = sprintf($this->l('The directory `%s` is not writable.'), $dir);
 
-            return false;
+                return false;
+            }
         }
 
         $this->nextQuickInfo[] = $this->l('Directory tests complete.');
