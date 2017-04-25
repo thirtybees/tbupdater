@@ -25,8 +25,6 @@
 
 namespace TbUpdaterModule;
 
-use TbUpdaterModule\GuzzleHttp\Client;
-
 /**
  * Class AjaxProcessor
  *
@@ -42,13 +40,13 @@ class AjaxProcessor
     public $status = true;
     public $backupName;
     public $backupFilesFilename;
-    public $backupIgnoreFiles;
+    public $backupIgnoreFiles = [];
     public $backupDbFilename;
     public $restoreName;
     public $installVersion;
     public $restoreFilesFilename;
-    public $restoreDbFilenames;
-    public $installedLanguagesIso;
+    public $restoreDbFilenames = [];
+    public $installedLanguagesIso = [];
     public $modulesAddons;
     public $warningExists;
     public $error = '0';
@@ -195,7 +193,7 @@ class AjaxProcessor
         $this->nextDesc = $this->l('Starting upgrade...');
         preg_match('#([0-9]+\.[0-9]+)(?:\.[0-9]+){1,2}#', _TB_VERSION_, $matches);
 
-        $this->next = 'upgradeComplete';
+        $this->next = 'download';
         $this->nextDesc = $this->l('Shop deactivated. Now downloading... (this can take a while)');
 
         $this->nextQuickInfo[] = sprintf($this->l('Archives will come from %s and %s'), $this->upgrader->coreLink, $this->upgrader->extraLink);
@@ -2577,6 +2575,9 @@ class AjaxProcessor
     {
         // installedLanguagesIso is used to merge translations files
         $isoIds = Language::getIsoIds(false);
+        if (!is_array($this->installedLanguagesIso)) {
+            $this->installedLanguagesIso = [];
+        }
         foreach ($isoIds as $v) {
             $this->installedLanguagesIso[] = $v['iso_code'];
         }
@@ -2592,11 +2593,14 @@ class AjaxProcessor
         $this->keepImages = UpgraderTools::getConfig(UpgraderTools::BACKUP_IMAGES);
         $this->keepMails = UpgraderTools::getConfig(UpgraderTools::KEEP_MAILS);
         $this->manualMode = (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) ? (bool) UpgraderTools::getConfig(UpgraderTools::MANUAL_MODE) : false;
-        $this->deactivateCustomModule = UpgraderTools::getConfig(UpgraderTools::DISABLE_CUSTOM_MODULES);
+        $this->deactivateCustomModule = false;
 
         $adminDir = str_replace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_);
 
         // during restoration, do not remove :
+        if (!is_array($this->restoreIgnoreAbsoluteFiles)) {
+            $this->restoreIgnoreAbsoluteFiles = [];
+        }
         $this->restoreIgnoreAbsoluteFiles[] = '/config/settings.inc.php';
         $this->restoreIgnoreAbsoluteFiles[] = '/modules/autoupgrade';
         $this->restoreIgnoreAbsoluteFiles[] = "/$adminDir/autoupgrade";
@@ -2604,6 +2608,9 @@ class AjaxProcessor
         $this->restoreIgnoreAbsoluteFiles[] = '..';
 
         // during backup, do not save
+        if (!is_array($this->backupIgnoreAbsoluteFiles)) {
+            $this->backupIgnoreAbsoluteFiles = [];
+        }
         $this->backupIgnoreAbsoluteFiles[] = '/tools/smarty_v2/compile';
         $this->backupIgnoreAbsoluteFiles[] = '/tools/smarty_v2/cache';
         $this->backupIgnoreAbsoluteFiles[] = '/tools/smarty/compile';
@@ -2614,30 +2621,47 @@ class AjaxProcessor
         $this->backupIgnoreAbsoluteFiles[] = '/cache/cachefs';
 
         // do not care about the two autoupgrade dir we use;
+        if (!is_array($this->backupIgnoreAbsoluteFiles)) {
+            $this->backupIgnoreAbsoluteFiles = [];
+        }
         $this->backupIgnoreAbsoluteFiles[] = '/modules/autoupgrade';
         $this->backupIgnoreAbsoluteFiles[] = '/modules/psonefivemigrator';
         $this->backupIgnoreAbsoluteFiles[] = '/modules/tbupdater';
         $this->backupIgnoreAbsoluteFiles[] = '/modules/psonesevenmigrator';
         $this->backupIgnoreAbsoluteFiles[] = "/$adminDir/autoupgrade";
 
+        if (!is_array($this->backupIgnoreFiles)) {
+            $this->backupIgnoreFiles = [];
+        }
         $this->backupIgnoreFiles[] = '.';
         $this->backupIgnoreFiles[] = '..';
         $this->backupIgnoreFiles[] = '.svn';
         $this->backupIgnoreFiles[] = '.git';
         $this->backupIgnoreFiles[] = $this->tools->autoupgradeDir;
 
+        if (!is_array($this->excludeFilesFromUpgrade)) {
+            $this->excludeFilesFromUpgrade = [];
+        }
         $this->excludeFilesFromUpgrade[] = '.';
         $this->excludeFilesFromUpgrade[] = '..';
         $this->excludeFilesFromUpgrade[] = '.svn';
         $this->excludeFilesFromUpgrade[] = '.git';
+
         // do not copy install, neither settings.inc.php in case it would be present
+        if (!is_array($this->excludeAbsoluteFilesFromUpgrade)) {
+            $this->excludeAbsoluteFilesFromUpgrade = [];
+        }
         $this->excludeAbsoluteFilesFromUpgrade[] = '/config/settings.inc.php';
         $this->excludeAbsoluteFilesFromUpgrade[] = '/install';
         $this->excludeAbsoluteFilesFromUpgrade[] = '/'.$this->tools->autoupgradeDir.'/index_cli.php';
         $this->excludeAbsoluteFilesFromUpgrade[] = '/install-dev';
         $this->excludeAbsoluteFilesFromUpgrade[] = '/config/modules_list.xml';
         $this->excludeAbsoluteFilesFromUpgrade[] = '/config/xml/modules_list.xml';
+
         // this will exclude autoupgrade dir from admin, and autoupgrade from modules
+        if (!is_array($this->excludeFilesFromUpgrade)) {
+            $this->excludeFilesFromUpgrade = [];
+        }
         $this->excludeFilesFromUpgrade[] = $this->tools->autoupgradeDir;
 
         if ($this->keepImages === '0') {
@@ -2649,6 +2673,7 @@ class AjaxProcessor
         }
 
         $this->excludeAbsoluteFilesFromUpgrade[] = '/themes/default-bootstrap';
+        $this->excludeAbsoluteFilesFromUpgrade[] = '/themes/community-theme-default';
     }
 
     /**
