@@ -1,0 +1,67 @@
+<?php
+/** @var TbUpdater $this */
+use TbUpdaterModule\UpgraderTools;
+
+$confValues = UpgraderTools::getConfig();
+$required = false;
+
+?>
+
+
+
+<div class="panel col-lg-6 generatedForm" id="<?php echo $name; ?>Block">
+	<div class="panel-heading"><?php if (isset($icon)) : ?><i class="<?php echo $icon; ?>"></i> <?php endif; ?><?php echo $tabname ?></div>
+	<div class="form-wrapper clearfix">
+    <?php foreach ($fields as $key => $field) :
+        if (isset($field['required']) && $field['required']) {
+            $required = true;
+        }
+
+        if ((isset($field['disabled']) && $field['disabled']) || version_compare($this->upgrader->version, '1.7.1.0', '>=')) {
+            $disabled = true;
+        } else {
+            $disabled = false;
+        }
+
+        if (isset($confValues[$key])) {
+            $val = $confValues[$key];
+        } else {
+            $val = isset($field['defaultValue']) ? $field['defaultValue'] : false;
+        }
+        ?>
+
+	<div class="form-group">
+        <?php if (!in_array($field['type'], ['image', 'radio', 'container', 'container_end']) || isset($field['show'])) : ?>
+			<div class="col-lg-3 control-label"><?php echo ($field['title'] ? '<label >'.$field['title'].'</label>' : ''); ?></div>
+        <?php endif; ?>
+		<div class="col-lg-9">
+            <?php switch ($field['type']) :
+			case 'disabled': ?>
+                <?php echo $field['disabled']; ?>
+            <?php break; ?>
+            <?php case 'bool': ?>
+				<span class="switch prestashop-switch fixed-width-lg">
+					<input type="radio" name="<?php echo $key; ?>" id="<?php echo $key; ?>_on" value="1"<?php echo ($val ? ' checked="checked"' : ''); ?>>
+					<label for="<?php echo $key; ?>_on"><?php echo $this->l('Yes'); ?></label>
+					<input type="radio" name="<?php echo $key; ?>" id="<?php echo $key; ?>_off" value="0" <?php echo (!$val ? ' checked="checked"' : ''); ?>>
+					<label for="<?php echo $key; ?>_off"><?php echo $this->l('No'); ?></label>
+					<a class="slide-button btn"></a>
+				</span>
+            <?php break; ?>
+            <?php case 'select': ?>
+                <select id="<?php echo $key; ?>" name="<?php echo $key; ?>">
+                    <?php foreach ($field['choices'] as $cValue => $cKey) : ?>
+                        <option value="<?php echo (int) $cValue; ?>"<?php echo (($cValue == $val) ? ' selected="selected"' : ''); ?>><?php echo $cKey; ?></option>
+                    <?php endforeach; ?>
+                </select>
+            <?php break; ?>
+            <?php endswitch; ?>
+            <?php echo ((isset($field['required']) && $field['required'] && !in_array($field['type'], ['image', 'radio'])) ? ' <sup>*</sup>' : ''); ?>
+			<?php echo (isset($field['desc']) ? '<p style="clear:both">'.((isset($field['thumb']) && $field['thumb'] && $field['thumb']['pos'] == 'after') ? '<img src="'.$field['thumb']['file'].'" alt="'.$field['title'].'" title="'.$field['title'].'" style="float:left;" />' : '').$field['desc'].'</p>' : ''); ?>
+			<?php if (!in_array($field['type'], ['image', 'radio', 'container', 'container_end']) || isset($field['show'])) : ?>
+			<?php endif; ?>
+            </div>
+		</div>
+    <?php endforeach; ?>
+    </div>
+</div>

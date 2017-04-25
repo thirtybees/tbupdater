@@ -1,0 +1,69 @@
+<?php
+/**
+ * 2007-2016 PrestaShop
+ *
+ * Thirty Bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
+ * Copyright (C) 2017 Thirty Bees
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@thirtybees.com so we can send you a copy immediately.
+ *
+ * @author    Thirty Bees <modules@thirtybees.com>
+ * @author    PrestaShop SA <contact@prestashop.com>
+ * @copyright 2017 Thirty Bees
+ * @copyright 2007-2016 PrestaShop SA
+ * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * PrestaShop is an internationally registered trademark & property of PrestaShop SA
+ */
+use TbUpdaterModule\UpgraderTools;
+
+/** @var TbUpdater $this */
+$channel = UpgraderTools::getConfig('channel');
+?>
+
+<div id="upgradeButtonBlock" class="panel col-lg-12">
+	<div class="panel-heading"><i class="icon icon-wrench"></i> <?php echo $this->l('Start your Upgrade'); ?></div>
+	<div class="blocOneClickUpgrade">
+		<strong><?php echo $this->l('Your current thirty bees version'); ?>:</strong>
+		<code><?php echo _TB_VERSION_; ?></code>
+	</div>
+
+    <?php if ($this->configOk()) : ?>
+        <?php $showBigButtonNewVersion = false; ?>
+        <?php if (count(\TbUpdaterModule\AjaxProcessor::$skipAction) > 0) : ?>
+			<div id="skipAction-list" class="alert alert-warning">
+                <?php echo $this->l('The following actions will be automatically replaced'); ?>
+				<ul>
+                    <?php foreach (\TbUpdaterModule\AjaxProcessor::$skipAction as $k => $v) : ?>
+						<li><?php echo sprintf($this->l('%1$s will be replaced with %2$s'), '<strong>'.$k.'</strong>', '<b>'.$v.'</b>'); ?></li>
+                    <?php endforeach; ?>
+				</ul>
+				<p><?php echo $this->l('To change this behavior, you need to manually edit your php files'); ?></p>
+			</div>
+        <?php else : ?>
+            <?php $showBigButtonNewVersion = true; ?>
+        <?php endif; ?>
+        <?php if ($this->configOk()) : ?>
+			<strong class="configOk"><?php echo $this->l('Are you ready to update thirty bees?'); ?></strong>
+			<p class="clearfix configOk">
+				<a href="" id="upgradeNow" class="upgradestep btn btn-primary btn-lg">
+					<i class="icon icon-wrench"></i> <?php echo $this->l('Update thirty bees'); ?>
+				</a>
+			</p>
+        <?php endif; ?>
+        <?php echo $this->displayAdminTemplate(__DIR__.'/channelselect.phtml'); ?>
+	<?php else: ?>
+		<strong><?php echo $this->l('Make sure every item on the checklist is OK before you continue'); ?></strong>
+    <?php endif; ?>
+</div>
+
+<?php if ($this->manualMode) : ?>
+    <?php echo $this->displayDevTools(); ?>
+<?php endif; ?>

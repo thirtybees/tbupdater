@@ -1,4 +1,5 @@
-{*
+<?php
+/**
  * 2007-2016 PrestaShop
  *
  * Thirty Bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
@@ -20,8 +21,14 @@
  * @copyright 2007-2016 PrestaShop SA
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  * PrestaShop is an internationally registered trademark & property of PrestaShop SA
-*}
-<div class="panel">
-	<h3><i class="icon icon-refresh"></i> {l s='thirty bees updater' mod='tbupdater'}</h3>
-	<div class="alert alert-info">{l s='This module keeps your modules updated. In the future you can use this module to update thirty bees as well.' mod='tbupdater'}</div>
+ */
+
+/** @var TbUpdater $this */
+?>
+<div id="informationBlock" class="panel col-lg-6">
+    <div class="panel-heading"><?php echo $this->l('Welcome!'); ?></div>
+	<p><?php echo $this->l('With the thirty bees migration module you can easily migrate from PrestaShop 1.6 to thirty bees'); ?></p>
+	<span style="color: red; font-weight: bold"><?php echo $this->l('Please always perform a full manual backup of your files and database before starting any upgrade.'); ?></span>
+    <p><?php echo $this->l('Double-check the integrity of your backup and that you can easily manually roll-back if necessary.'); ?></p>
+    <p><?php echo $this->l('If you do not know how to proceed, ask your hosting provider.'); ?></p>
 </div>

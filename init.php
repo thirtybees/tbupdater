@@ -1,4 +1,5 @@
-{*
+<?php
+/**
  * 2007-2016 PrestaShop
  *
  * Thirty Bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
@@ -19,9 +20,10 @@
  * @copyright 2017 Thirty Bees
  * @copyright 2007-2016 PrestaShop SA
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- * PrestaShop is an internationally registered trademark & property of PrestaShop SA
-*}
-<div class="panel">
-	<h3><i class="icon icon-refresh"></i> {l s='thirty bees updater' mod='tbupdater'}</h3>
-	<div class="alert alert-info">{l s='This module keeps your modules updated. In the future you can use this module to update thirty bees as well.' mod='tbupdater'}</div>
-</div>
+ *  PrestaShop is an internationally registered trademark & property of PrestaShop SA
+ */
+
+require_once __DIR__.'/classes/autoload.php';
+
+ob_start();
+$timerStart = microtime(true);

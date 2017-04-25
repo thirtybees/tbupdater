@@ -1,4 +1,5 @@
-{*
+<?php
+/**
  * 2007-2016 PrestaShop
  *
  * Thirty Bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
@@ -20,8 +21,18 @@
  * @copyright 2007-2016 PrestaShop SA
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  * PrestaShop is an internationally registered trademark & property of PrestaShop SA
-*}
-<div class="panel">
-	<h3><i class="icon icon-refresh"></i> {l s='thirty bees updater' mod='tbupdater'}</h3>
-	<div class="alert alert-info">{l s='This module keeps your modules updated. In the future you can use this module to update thirty bees as well.' mod='tbupdater'}</div>
+ */
+
+/** @var TbUpdater $this */
+$upgrader = \TbUpdaterModule\Upgrader::getInstance();
+?>
+<strong><?php echo $this->l('Going to migrate to thirty bees version'); ?>:</strong> <em id="selectedVersion"><?php echo $upgrader->version ?: $this->l('Nothing available'); ?></em>
+<div class="form-group">
+	<label for="channelSelect"><?php echo $this->l('Channel:'); ?></label>
+	<select id="channelSelect" name="channel" class="form-control fixed-width-xxl">
+		<?php foreach (['stable', 'rc', 'beta', 'alpha'] as $channel) : ?>
+		<option id="use<?php echo ucfirst($channel); ?>" value="<?php echo $channel; ?>"><?php echo $channel; ?></option>
+		<?php endforeach; ?>
+	</select>
+	<div id="channelSelectErrors" class="alert alert-danger" style="display:none"></div>
 </div>

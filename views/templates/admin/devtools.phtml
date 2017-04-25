@@ -1,4 +1,5 @@
-{*
+<?php
+/**
  * 2007-2016 PrestaShop
  *
  * Thirty Bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
@@ -20,8 +21,24 @@
  * @copyright 2007-2016 PrestaShop SA
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  * PrestaShop is an internationally registered trademark & property of PrestaShop SA
-*}
-<div class="panel">
-	<h3><i class="icon icon-refresh"></i> {l s='thirty bees updater' mod='tbupdater'}</h3>
-	<div class="alert alert-info">{l s='This module keeps your modules updated. In the future you can use this module to update thirty bees as well.' mod='tbupdater'}</div>
-</div>
+ */
+
+/** @var TbUpdater $this */
+?>
+<br class="clear"/>
+<fieldset class="autoupgradeSteps">
+	<legend><?php echo $this->l('Step'); ?></legend>
+	<h4><?php echo $this->l('Upgrade steps') ?>:</h4>
+	<div>
+		<a id="download" class="upgradestep">download</a>
+		<a id="unzip" class="upgradestep">unzip</a>
+		<a id="removeSamples" class="upgradestep">removeSamples</a>
+		<a id="backupFiles" class="upgradestep">backupFiles</a>
+		<a id="backupDb" class="upgradestep">backupDb</a>
+		<a id="upgradeFiles" class="upgradestep">upgradeFiles</a>
+		<a id="upgradeDb" class="upgradestep">upgradeDb</a>
+		<a id="upgradeModules" class="upgradestep">upgradeModules</a>
+		<a id="cleanDatabase" class="upgradestep">cleanDb</a>
+		<a id="upgradeComplete" class="upgradestep">upgradeComplete</a>
+	</div>
+</fieldset>
