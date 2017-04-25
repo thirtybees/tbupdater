@@ -193,7 +193,7 @@ class AjaxProcessor
         $this->nextDesc = $this->l('Starting upgrade...');
         preg_match('#([0-9]+\.[0-9]+)(?:\.[0-9]+){1,2}#', _TB_VERSION_, $matches);
 
-        $this->next = 'download';
+        $this->next = 'testDirs';
         $this->nextDesc = $this->l('Shop deactivated. Now downloading... (this can take a while)');
 
         $this->nextQuickInfo[] = sprintf($this->l('Archives will come from %s and %s'), $this->upgrader->coreLink, $this->upgrader->extraLink);
@@ -228,6 +228,37 @@ class AjaxProcessor
                 }
             }
         }
+    }
+
+    /**
+     * Test directories
+     *
+     * @return bool
+     */
+    public function ajaxProcessTestDirs()
+    {
+        $testDirs = [
+            '/classes/',
+            '/controllers/',
+            '/vendor/',
+            '/config/',
+        ];
+
+        foreach ($testDirs as $dir) {
+            if (!ConfigurationTest::test_dir($dir, true)) {
+                $this->nextQuickInfo[] = sprintf($this->l('The directory `%s` is not writable.'), $dir);
+                $this->nextErrors[] = sprintf($this->l('The directory `%s` is not writable.'), $dir);
+                $this->next = 'error';
+                $this->nextErrors[] = sprintf($this->l('The directory `%s` is not writable.'), $dir);
+            }
+
+            return false;
+        }
+
+        $this->nextQuickInfo[] = $this->l('Directory tests complete.');
+        $this->next = 'download';
+
+        return true;
     }
 
     /**
@@ -269,8 +300,8 @@ class AjaxProcessor
                             $this->nextErrors[] = sprintf($this->l('Download complete but md5 the sum of the core package does not match (%s).'), $md5CoreFile);
                         }
                         if ($md5ExtraFile !== $this->upgrader->md5Extra) {
-                            $this->nextQuickInfo[] = sprintf($this->l('Download complete but md5 sum of the library package does not match (%s).'), $md5ExtraFile);
-                            $this->nextErrors[] = sprintf($this->l('Download complete but md5 sum the library package does not match (%s).'), $md5ExtraFile);
+                            $this->nextQuickInfo[] = sprintf($this->l('Download complete but md5 sum of the extra package does not match (%s).'), $md5ExtraFile);
+                            $this->nextErrors[] = sprintf($this->l('Download complete but md5 sum of the extra package does not match (%s).'), $md5ExtraFile);
                         }
 
                         $this->next = 'error';
@@ -1001,6 +1032,9 @@ class AjaxProcessor
             $files = scandir($this->tools->backupPath.DIRECTORY_SEPARATOR.$this->restoreName);
             foreach ($files as $file) {
                 if (preg_match('#auto-backupdb_'.preg_quote($this->restoreName).'#', $file)) {
+                    if (!is_array($this->restoreDbFilenames)) {
+                        $this->restoreDbFilenames = [];
+                    }
                     $this->restoreDbFilenames[] = $file;
                 }
             }

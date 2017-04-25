@@ -265,8 +265,8 @@ class Upgrader
         $channelWithLatest = false;
 
         // Check if update module needs to be updated
-        // FIXME: get module version from database
-        $semver = new Version('1.0.0');
+        // FIXME: get module version from database and no longer hard-code
+        $semver = new Version('1.1.0');
 
         $checkVersions = [];
         foreach (['stable', 'rc', 'beta', 'alpha'] as $type) {
