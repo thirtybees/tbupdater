@@ -744,6 +744,14 @@ class TbUpdater extends Module
      */
     public function postProcess()
     {
+        if (Tools::isSubmit('checkForUpdates')) {
+            if ((bool) $this->checkForUpdates(true)) {
+                $this->context->controller->confirmations[] = $this->l('Module information has been updated');
+            } else {
+                $this->context->controller->errors[] = $this->l('Unable to update module info');
+            }
+        }
+
         $this->setFields();
 
         // set default configuration to default channel & default configuration for backup and upgrade
