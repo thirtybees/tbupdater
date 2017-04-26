@@ -60,6 +60,12 @@ class TbUpdater extends Module
     protected $upgrader;
     /** @var string|null $backupName Chosen backup name */
     protected $backupName = null;
+    /**
+     * @var bool $manualMode
+     *
+     * @deprecated 1.1.2
+     */
+    public $manualMode = false;
 
     /**
      * ModSelfUpdate constructor.
