@@ -603,7 +603,6 @@ class TbUpdater extends Module
             if (Tools::ZipExtract($file, $tmpFolder) && file_exists($tmpFolder.DIRECTORY_SEPARATOR.$moduleName)) {
                 if (file_exists(_PS_MODULE_DIR_.$moduleName)) {
                     if (!ConfigurationTest::testDir(_PS_MODULE_DIR_.$moduleName, true, $report, true)) {
-                        ddd('kanker');
                         $this->addError(sprintf($this->l('Could not update module `%s`: module directory not writable (`%s`).'), $moduleName, $report));
                         $this->recursiveDeleteOnDisk($tmpFolder);
                         @unlink(_PS_MODULE_DIR_.$moduleName.'.zip');
