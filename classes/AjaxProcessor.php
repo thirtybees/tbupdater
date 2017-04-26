@@ -242,6 +242,11 @@ class AjaxProcessor
             '/controllers/',
             '/vendor/',
             '/config/',
+            '/js/',
+            '/localization/',
+            '/css/',
+            '/mails/',
+            '/webservice/',
         ];
 
         foreach ($testDirs as $dir) {
