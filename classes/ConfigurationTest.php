@@ -131,39 +131,53 @@ class ConfigurationTest
         return self::testDir($dir);
     }
 
-    public static function testDir($relativeDir, $recursive = false, &$fullReport = null)
+    /**
+     * Test if directory is writable
+     *
+     * @param string $dir        Directory path, absolute or relative
+     * @param bool   $recursive
+     * @param null   $fullReport
+     * @param bool   $absolute   Is absolute path to directory
+     *
+     * @return bool
+     *
+     * @since   1.0.0 Added $absolute parameter
+     * @version 1.0.0 Initial version
+     */
+    public static function testDir($dir, $recursive = false, &$fullReport = null, $absolute = false)
     {
-        $dir = rtrim(_PS_ROOT_DIR_, '\\/').DIRECTORY_SEPARATOR.trim($relativeDir, '\\/');
-        if (!file_exists($dir) || !$dh = opendir($dir)) {
-            $fullReport = sprintf('Directory %s does not exist or is not writable', $dir); // sprintf for future translation
+        if ($absolute) {
+            $absoluteDir = $dir;
+        } else {
+            $absoluteDir = rtrim(_PS_ROOT_DIR_, '\\/').DIRECTORY_SEPARATOR.trim($dir, '\\/');
+        }
+
+        if (!file_exists($absoluteDir)) {
+            $fullReport = sprintf('Directory %s does not exist or is not writable', $absoluteDir);
 
             return false;
         }
-        $dummy = rtrim($dir, '\\/').DIRECTORY_SEPARATOR.uniqid();
-        if (@file_put_contents($dummy, 'test')) {
-            @unlink($dummy);
-            if (!$recursive) {
-                closedir($dh);
 
-                return true;
-            }
-        } elseif (!is_writable($dir)) {
-            $fullReport = sprintf('Directory %s is not writable', $dir); // sprintf for future translation
+        if (!is_writable($absoluteDir)) {
+            $fullReport = sprintf('Directory %s is not writable', $absoluteDir);
 
             return false;
         }
 
         if ($recursive) {
-            while (($file = readdir($dh)) !== false) {
-                if (is_dir($dir.DIRECTORY_SEPARATOR.$file) && $file != '.' && $file != '..' && $file != '.svn') {
-                    if (!self::testDir($relativeDir.DIRECTORY_SEPARATOR.$file, $recursive, $fullReport)) {
-                        return false;
-                    }
+            foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($absoluteDir)) as $file) {
+                /** @var \SplFileInfo $file */
+                if (in_array($file->getFilename(), ['.', '..']) || $file->isLink()) {
+                    continue;
+                }
+
+                if (!is_writable($file)) {
+                    $fullReport = sprintf('File %s is not writable', $file);
+
+                    return false;
                 }
             }
         }
-
-        closedir($dh);
 
         return true;
     }

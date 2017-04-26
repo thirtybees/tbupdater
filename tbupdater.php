@@ -81,10 +81,10 @@ class TbUpdater extends Module
 
         if (isset(Context::getContext()->employee->id) && Context::getContext()->employee->id && isset(Context::getContext()->link) && is_object(Context::getContext()->link)) {
             $this->baseUrl = $this->context->link->getAdminLink('AdminModules', true).'&'.http_build_query([
-                'configure'   => $this->name,
-                'tab_module'  => $this->tab,
-                'module_name' => $this->name,
-            ]);
+                    'configure'   => $this->name,
+                    'tab_module'  => $this->tab,
+                    'module_name' => $this->name,
+                ]);
         }
     }
 
@@ -215,7 +215,7 @@ class TbUpdater extends Module
         }
 
         if ((!file_exists($this->tools->autoupgradePath.DIRECTORY_SEPARATOR.'ajax-upgradetab.php')
-            || md5_file($this->tools->autoupgradePath.DIRECTORY_SEPARATOR.'ajax-upgradetab.php') !== md5_file(__DIR__.'/ajax-upgradetab.php'))
+                || md5_file($this->tools->autoupgradePath.DIRECTORY_SEPARATOR.'ajax-upgradetab.php') !== md5_file(__DIR__.'/ajax-upgradetab.php'))
             && !@copy(__DIR__.'/ajax-upgradetab.php', $this->tools->autoupgradePath.DIRECTORY_SEPARATOR.'ajax-upgradetab.php')) {
             $html = '<div class="alert alert-danger">'.sprintf($this->l('[TECHNICAL ERROR] ajax-upgradetab.php could not be copied. Please make sure write permissions have been set on the folder `%s`.'), $this->tools->autoupgradePath.DIRECTORY_SEPARATOR).'</div>';
 
@@ -602,8 +602,11 @@ class TbUpdater extends Module
         if (substr($file, -4) == '.zip') {
             if (Tools::ZipExtract($file, $tmpFolder) && file_exists($tmpFolder.DIRECTORY_SEPARATOR.$moduleName)) {
                 if (file_exists(_PS_MODULE_DIR_.$moduleName)) {
-                    if (!ConfigurationTest::testDir(_PS_MODULE_DIR_.$moduleName, true, $swag, true)) {
-                        $this->addError(sprintf($this->l('Could not update module `%s`: module directory not writable.'), $moduleName));
+                    if (!ConfigurationTest::testDir(_PS_MODULE_DIR_.$moduleName, true, $report, true)) {
+                        ddd('kanker');
+                        $this->addError(sprintf($this->l('Could not update module `%s`: module directory not writable (`%s`).'), $moduleName, $report));
+                        $this->recursiveDeleteOnDisk($tmpFolder);
+                        @unlink(_PS_MODULE_DIR_.$moduleName.'.zip');
 
                         return false;
                     }
@@ -858,7 +861,7 @@ class TbUpdater extends Module
             $allowedArray['root_writable'] = $this->getRootWritable();
             $tools = UpgraderTools::getInstance();
             $adminDir = trim(str_replace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_), DIRECTORY_SEPARATOR);
-            $allowedArray['admin_au_writable'] = ConfigurationTest::testDir($adminDir.DIRECTORY_SEPARATOR.$tools->autoupgradeDir, false, $report);
+            $allowedArray['admin_au_writable'] = ConfigurationTest::testDir($adminDir.DIRECTORY_SEPARATOR.$tools->autoupgradeDir, false, $report, true);
             $allowedArray['shop_deactivated'] = (!Configuration::get('PS_SHOP_ENABLE') || (isset($_SERVER['HTTP_HOST']) && in_array($_SERVER['HTTP_HOST'], ['127.0.0.1', 'localhost'])));
             $allowedArray['cache_deactivated'] = !(defined('_PS_CACHE_ENABLED_') && _PS_CACHE_ENABLED_);
             $allowedArray['module_version_ok'] = true;
