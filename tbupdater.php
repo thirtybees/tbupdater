@@ -79,7 +79,7 @@ class TbUpdater extends Module
         $this->displayName = $this->l('thirty bees updater');
         $this->description = $this->l('Use this module to keep the core files and modules updated!');
 
-        if (isset(Context::getContext()->employee->id) && Context::getContext()->employee->id) {
+        if (isset(Context::getContext()->employee->id) && Context::getContext()->employee->id && isset(Context::getContext()->link) && is_object(Context::getContext()->link)) {
             $this->baseUrl = $this->context->link->getAdminLink('AdminModules', true).'&'.http_build_query([
                 'configure'   => $this->name,
                 'tab_module'  => $this->tab,
