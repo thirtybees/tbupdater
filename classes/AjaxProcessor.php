@@ -245,7 +245,7 @@ class AjaxProcessor
         ];
 
         foreach ($testDirs as $dir) {
-            if (!ConfigurationTest::test_dir($dir, true)) {
+            if (!ConfigurationTest::testDir($dir, true)) {
                 $this->nextQuickInfo[] = sprintf($this->l('The directory `%s` is not writable.'), $dir);
                 $this->nextErrors[] = sprintf($this->l('The directory `%s` is not writable.'), $dir);
                 $this->next = 'error';
@@ -270,7 +270,7 @@ class AjaxProcessor
      */
     public function ajaxProcessDownload()
     {
-        if (ConfigurationTest::test_fopen() || ConfigurationTest::test_curl()) {
+        if (ConfigurationTest::testFopen() || ConfigurationTest::testCurl()) {
             if (!is_object($this->upgrader)) {
                 $this->upgrader = Upgrader::getInstance();
             }
@@ -285,7 +285,7 @@ class AjaxProcessor
             }
             $report = '';
             $relativeDownloadPath = str_replace(_PS_ROOT_DIR_, '', $this->tools->downloadPath);
-            if (ConfigurationTest::test_dir($relativeDownloadPath, false, $report)) {
+            if (ConfigurationTest::testDir($relativeDownloadPath, false, $report)) {
                 $res = $this->upgrader->downloadLast($this->tools->downloadPath);
                 if ($res) {
                     $md5CoreFile = md5_file(realpath($this->tools->downloadPath).DIRECTORY_SEPARATOR."thirtybees-v{$this->upgrader->version}.zip");
@@ -348,7 +348,7 @@ class AjaxProcessor
         }
         $relativeExtractPath = str_replace(_PS_ROOT_DIR_, '', $coreFileDest);
         $report = '';
-        if (ConfigurationTest::test_dir($relativeExtractPath, false, $report)) {
+        if (ConfigurationTest::testDir($relativeExtractPath, false, $report)) {
             if ($this->extractZip($coreFilePath, $coreFileDest) && $this->extractZip($extraFilePath, $extraFileDest)) {
                 // Unsetting to force listing
                 unset($this->nextParams['removeList']);
@@ -521,7 +521,7 @@ class AjaxProcessor
 
         $relativeBackupPath = str_replace(_PS_ROOT_DIR_, '', $this->tools->backupPath);
         $report = '';
-        if (!ConfigurationTest::test_dir($relativeBackupPath, false, $report)) {
+        if (!ConfigurationTest::testDir($relativeBackupPath, false, $report)) {
             $this->nextDesc = $this->l('Backup directory is not writable ');
             $this->nextQuickInfo[] = 'Backup directory is not writable ';
             $this->nextErrors[] = 'Backup directory is not writable "'.$this->tools->backupPath.'"';
@@ -1756,83 +1756,46 @@ class AjaxProcessor
         }
 
 
-            Db::getInstance()->execute('UPDATE `'._DB_PREFIX_.'configuration` SET `name` = \'PS_LEGACY_IMAGES\' WHERE name LIKE \'0\' AND `value` = 1');
-            Db::getInstance()->execute('UPDATE `'._DB_PREFIX_.'configuration` SET `value` = 0 WHERE `name` LIKE \'PS_LEGACY_IMAGES\'');
-            if (Db::getInstance()->getValue('SELECT COUNT(id_product_download) FROM `'._DB_PREFIX_.'product_download` WHERE `active` = 1') > 0) {
-                Db::getInstance()->execute('UPDATE `'._DB_PREFIX_.'configuration` SET `value` = 1 WHERE `name` LIKE \'PS_VIRTUAL_PROD_FEATURE_ACTIVE\'');
-            }
+        Db::getInstance()->execute('UPDATE `'._DB_PREFIX_.'configuration` SET `name` = \'PS_LEGACY_IMAGES\' WHERE name LIKE \'0\' AND `value` = 1');
+        Db::getInstance()->execute('UPDATE `'._DB_PREFIX_.'configuration` SET `value` = 0 WHERE `name` LIKE \'PS_LEGACY_IMAGES\'');
+        if (Db::getInstance()->getValue('SELECT COUNT(id_product_download) FROM `'._DB_PREFIX_.'product_download` WHERE `active` = 1') > 0) {
+            Db::getInstance()->execute('UPDATE `'._DB_PREFIX_.'configuration` SET `value` = 1 WHERE `name` LIKE \'PS_VIRTUAL_PROD_FEATURE_ACTIVE\'');
+        }
 
-            if (defined('_THEME_NAME_') && $this->updateDefaultTheme && preg_match('#(default|prestashop|default-bootstrap)$#', _THEME_NAME_)) {
-                $separator = addslashes(DIRECTORY_SEPARATOR);
-                $file = _PS_ROOT_DIR_.$separator.'themes'.$separator._THEME_NAME_.$separator.'cache'.$separator;
-                if (file_exists($file)) {
-                    foreach (scandir($file) as $cache) {
-                        if ($cache[0] != '.' && $cache != 'index.php' && $cache != '.htaccess' && file_exists($file.$cache) && !is_dir($file.$cache)) {
-                            if (file_exists($dir.$cache)) {
-                                unlink($file.$cache);
-                            }
+        if (defined('_THEME_NAME_') && $this->updateDefaultTheme && preg_match('#(default|prestashop|default-bootstrap)$#', _THEME_NAME_)) {
+            $separator = addslashes(DIRECTORY_SEPARATOR);
+            $file = _PS_ROOT_DIR_.$separator.'themes'.$separator._THEME_NAME_.$separator.'cache'.$separator;
+            if (file_exists($file)) {
+                foreach (scandir($file) as $cache) {
+                    if ($cache[0] != '.' && $cache != 'index.php' && $cache != '.htaccess' && file_exists($file.$cache) && !is_dir($file.$cache)) {
+                        if (file_exists($dir.$cache)) {
+                            unlink($file.$cache);
                         }
                     }
                 }
             }
+        }
 
-            if (version_compare($this->installVersion, '1.5.4.0', '>=')) {
-                // Upgrade languages
-                if (!defined('_PS_TOOL_DIR_')) {
-                    define('_PS_TOOL_DIR_', _PS_ROOT_DIR_.'/tools/');
-                }
-                if (!defined('_PS_TRANSLATIONS_DIR_')) {
-                    define('_PS_TRANSLATIONS_DIR_', _PS_ROOT_DIR_.'/translations/');
-                }
-                if (!defined('_PS_MODULES_DIR_')) {
-                    define('_PS_MODULES_DIR_', _PS_ROOT_DIR_.'/modules/');
-                }
-                if (!defined('_PS_MAILS_DIR_')) {
-                    define('_PS_MAILS_DIR_', _PS_ROOT_DIR_.'/mails/');
-                }
-                $langs = Db::getInstance()->executeS('SELECT * FROM `'._DB_PREFIX_.'lang` WHERE `active` = 1');
-                if (is_array($langs)) {
-                    foreach ($langs as $lang) {
-                        $langPack = json_decode(Tools::file_get_contents('http'.(extension_loaded('openssl') ? 's' : '').'://www.prestashop.com/download/lang_packs/get_language_pack.php?version='.$this->installVersion.'&iso_lang='.$lang['iso_code']));
-
-                        if (!$langPack) {
-                            continue;
-                        } elseif ($content = Tools::file_get_contents('http'.(extension_loaded('openssl') ? 's' : '').'://translations.prestashop.com/download/lang_packs/gzip/'.$langPack->version.'/'.$lang['iso_code'].'.gzip')) {
-                            $file = _PS_TRANSLATIONS_DIR_.$lang['iso_code'].'.gzip';
-                            if ((bool) file_put_contents($file, $content)) {
-                                $gz = new Archive_Tar($file, true);
-                                $filesList = $gz->listContent();
-                                if (!$this->keepMails) {
-                                    $filesListing = [];
-                                    foreach ($filesList as $i => $file) {
-                                        if (preg_match('/^mails\/'.$lang['iso_code'].'\/.*/', $file['filename'])) {
-                                            unset($filesList[$i]);
-                                        }
-                                    }
-                                    foreach ($filesList as $file) {
-                                        if (isset($file['filename']) && is_string($file['filename'])) {
-                                            $filesListing[] = $file['filename'];
-                                        }
-                                    }
-                                    if (is_array($filesListing)) {
-                                        $gz->extractList($filesListing, _PS_TRANSLATIONS_DIR_.'../', '');
-                                    }
-                                } else {
-                                    $gz->extract(_PS_TRANSLATIONS_DIR_.'../', false);
-                                }
-                            }
-                        }
-                    }
-                }
+        if (version_compare($this->installVersion, '1.5.4.0', '>=')) {
+            // Upgrade languages
+            if (!defined('_PS_TOOL_DIR_')) {
+                define('_PS_TOOL_DIR_', _PS_ROOT_DIR_.'/tools/');
             }
-
-            if (true) { // 1.6.0.2+
-                $path = _PS_ADMIN_DIR_.DIRECTORY_SEPARATOR.'themes'.DIRECTORY_SEPARATOR.'default'.DIRECTORY_SEPARATOR.'template'.DIRECTORY_SEPARATOR.'controllers'.DIRECTORY_SEPARATOR.'modules'.DIRECTORY_SEPARATOR.'header.tpl';
-                if (file_exists($path)) {
-                    unlink($path);
-                }
+            if (!defined('_PS_TRANSLATIONS_DIR_')) {
+                define('_PS_TRANSLATIONS_DIR_', _PS_ROOT_DIR_.'/translations/');
             }
+            if (!defined('_PS_MODULES_DIR_')) {
+                define('_PS_MODULES_DIR_', _PS_ROOT_DIR_.'/modules/');
+            }
+            if (!defined('_PS_MAILS_DIR_')) {
+                define('_PS_MAILS_DIR_', _PS_ROOT_DIR_.'/mails/');
+            }
+        }
 
+        $path = _PS_ADMIN_DIR_.DIRECTORY_SEPARATOR.'themes'.DIRECTORY_SEPARATOR.'default'.DIRECTORY_SEPARATOR.'template'.DIRECTORY_SEPARATOR.'controllers'.DIRECTORY_SEPARATOR.'modules'.DIRECTORY_SEPARATOR.'header.tpl';
+        if (file_exists($path)) {
+            unlink($path);
+        }
 
         if (file_exists(_PS_ROOT_DIR_.'/cache/class_index.php')) {
             unlink(_PS_ROOT_DIR_.'/cache/class_index.php');

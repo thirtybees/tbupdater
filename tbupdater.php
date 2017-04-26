@@ -70,7 +70,7 @@ class TbUpdater extends Module
     {
         $this->name = 'tbupdater';
         $this->tab = 'administration';
-        $this->version = '1.1.0';
+        $this->version = '1.1.1';
         $this->author = 'thirty bees';
         $this->bootstrap = true;
         $this->need_instance = 1;
@@ -276,8 +276,12 @@ class TbUpdater extends Module
             $cache = [];
 
             // Process core versions
-            if (isset($results['updates']['value']) && $results['updates']['value'] instanceof GuzzleHttp\Psr7\Response) {
-                $updates = (string) $results['updates']['value']->getBody();
+            $updates = null;
+            if (isset($results['updates']['value'])) {
+                $updates = $results['updates']['value'];
+            }
+            if ($updates instanceof GuzzleHttp\Psr7\Response) {
+                $updates = (string) $updates->getBody();
                 $updates = json_decode($updates, true);
                 if ($updates) {
                     // Find latest core versions
@@ -295,8 +299,12 @@ class TbUpdater extends Module
             }
 
             // Process global module versions
-            if (isset($results['modules']['value']) && $results['modules']['value'] instanceof GuzzleHttp\Psr7\Response) {
-                $modules = (string) $results['modules']['value']->getBody();
+            $modules = null;
+            if (isset($results['modules']['value'])) {
+                $modules = $results['modules']['value'];
+            }
+            if ($modules instanceof GuzzleHttp\Psr7\Response) {
+                $modules = (string) $modules->getBody();
                 $modules = json_decode($modules, true);
                 if ($modules && is_array($modules)) {
                     foreach ($modules as $moduleName => &$module) {
@@ -312,8 +320,12 @@ class TbUpdater extends Module
             }
 
             // Process local module versions
-            if (isset($results['country']['value']) && $results['country']['value'] instanceof GuzzleHttp\Psr7\Response) {
-                $localModules = (string) $results['country']['value']->getBody();
+            $country = null;
+            if (isset($results['country']['value'])) {
+                $country = $results['country']['value'];
+            }
+            if ($country instanceof GuzzleHttp\Psr7\Response) {
+                $localModules = (string) $country->getBody();
                 $localModules = json_decode($localModules, true);
                 if ($localModules && is_array($localModules)) {
                     foreach ($localModules as $moduleName => &$module) {
@@ -842,11 +854,11 @@ class TbUpdater extends Module
 
         if (empty($allowedArray)) {
             $allowedArray = [];
-            $allowedArray['fopen'] = ConfigurationTest::test_fopen() || ConfigurationTest::test_curl();
+            $allowedArray['fopen'] = ConfigurationTest::testFopen() || ConfigurationTest::testCurl();
             $allowedArray['root_writable'] = $this->getRootWritable();
             $tools = UpgraderTools::getInstance();
             $adminDir = trim(str_replace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_), DIRECTORY_SEPARATOR);
-            $allowedArray['admin_au_writable'] = ConfigurationTest::test_dir($adminDir.DIRECTORY_SEPARATOR.$tools->autoupgradeDir, false, $report);
+            $allowedArray['admin_au_writable'] = ConfigurationTest::testDir($adminDir.DIRECTORY_SEPARATOR.$tools->autoupgradeDir, false, $report);
             $allowedArray['shop_deactivated'] = (!Configuration::get('PS_SHOP_ENABLE') || (isset($_SERVER['HTTP_HOST']) && in_array($_SERVER['HTTP_HOST'], ['127.0.0.1', 'localhost'])));
             $allowedArray['cache_deactivated'] = !(defined('_PS_CACHE_ENABLED_') && _PS_CACHE_ENABLED_);
             $allowedArray['module_version_ok'] = true;
@@ -864,7 +876,7 @@ class TbUpdater extends Module
     {
         // Root directory permissions cannot be checked recursively anymore, it takes too much time
         $tools = UpgraderTools::getInstance();
-        $tools->rootWritable = ConfigurationTest::test_dir('/', false, $report);
+        $tools->rootWritable = ConfigurationTest::testDir('/', false, $report);
         $tools->rootWritableReport = $report;
 
         return $tools->rootWritable;
@@ -985,14 +997,6 @@ class TbUpdater extends Module
         }
 
         return $content;
-    }
-
-    public function setMedia()
-    {
-        parent::setMedia();
-
-        $this->addJS(_PS_MODULE_DIR_.'tbupdater/views/js/upgrader.js');
-        $this->addCSS(_PS_MODULE_DIR_.'tbupdater/views/css/admin.css', 'all');
     }
 
     /** this returns fieldset containing the configuration points you need to use autoupgrade

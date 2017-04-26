@@ -71,37 +71,32 @@ class ConfigurationTest
      *
      * @since 1.0.0
      */
-    public static function test_phpversion()
+    public static function testPhpVersion()
     {
         return version_compare(substr(phpversion(), 0, 3), '5.4', '>=');
     }
 
-    public static function test_mysql_support()
+    public static function testMysqlSupport()
     {
         return function_exists('mysql_connect');
     }
 
-    public static function test_magicquotes()
-    {
-        return !get_magic_quotes_gpc();
-    }
-
-    public static function test_upload()
+    public static function testUpload()
     {
         return ini_get('file_uploads');
     }
 
-    public static function test_fopen()
+    public static function testFopen()
     {
         return ini_get('allow_url_fopen');
     }
 
-    public static function test_curl()
+    public static function testCurl()
     {
         return function_exists('curl_init');
     }
 
-    public static function test_system($funcs)
+    public static function testSystem($funcs)
     {
         foreach ($funcs as $func) {
             if (!function_exists($func)) {
@@ -112,17 +107,17 @@ class ConfigurationTest
         return true;
     }
 
-    public static function test_gd()
+    public static function testGd()
     {
         return function_exists('imagecreatetruecolor');
     }
 
-    public static function test_register_globals()
+    public static function testRegisterGlobals()
     {
         return !ini_get('register_globals');
     }
 
-    static function test_gz()
+    static function testGz()
     {
         if (function_exists('gzencode')) {
             return !(@gzencode('dd') === false);
@@ -131,12 +126,12 @@ class ConfigurationTest
         return false;
     }
 
-    static function test_config_dir($dir)
+    static function testConfigDir($dir)
     {
-        return self::test_dir($dir);
+        return self::testDir($dir);
     }
 
-    public static function test_dir($relativeDir, $recursive = false, &$fullReport = null)
+    public static function testDir($relativeDir, $recursive = false, &$fullReport = null)
     {
         $dir = rtrim(_PS_ROOT_DIR_, '\\/').DIRECTORY_SEPARATOR.trim($relativeDir, '\\/');
         if (!file_exists($dir) || !$dh = opendir($dir)) {
@@ -161,7 +156,7 @@ class ConfigurationTest
         if ($recursive) {
             while (($file = readdir($dh)) !== false) {
                 if (is_dir($dir.DIRECTORY_SEPARATOR.$file) && $file != '.' && $file != '..' && $file != '.svn') {
-                    if (!self::test_dir($relativeDir.DIRECTORY_SEPARATOR.$file, $recursive, $fullReport)) {
+                    if (!self::testDir($relativeDir.DIRECTORY_SEPARATOR.$file, $recursive, $fullReport)) {
                         return false;
                     }
                 }
@@ -180,9 +175,9 @@ class ConfigurationTest
      *
      * @since 1.0.0
      */
-    static function test_sitemap($dir)
+    static function testSitemap($dir)
     {
-        return self::test_file($dir);
+        return self::testFile($dir);
     }
 
     /**
@@ -192,110 +187,110 @@ class ConfigurationTest
      *
      * @since 1.0.0
      */
-    static function test_file($file)
+    static function testFile($file)
     {
         return file_exists($file) && is_writable($file);
     }
 
-    static function test_root_dir($dir)
+    static function testRootDir($dir)
     {
-        return self::test_dir($dir);
+        return self::testDir($dir);
     }
 
-    static function test_log_dir($dir)
+    static function testLogDir($dir)
     {
-        return self::test_dir($dir);
+        return self::testDir($dir);
     }
 
-    static function test_admin_dir($dir)
+    static function testAdminDir($dir)
     {
-        return self::test_dir($dir);
+        return self::testDir($dir);
     }
 
-    static function test_img_dir($dir)
+    static function testImgDir($dir)
     {
-        return self::test_dir($dir, true);
+        return self::testDir($dir, true);
     }
 
-    static function test_module_dir($dir)
+    static function testModuleDir($dir)
     {
-        return self::test_dir($dir, true);
+        return self::testDir($dir, true);
     }
 
-    static function test_tools_dir($dir)
+    static function testToolsDir($dir)
     {
-        return self::test_dir($dir);
+        return self::testDir($dir);
     }
 
-    static function test_cache_dir($dir)
+    static function testCacheDir($dir)
     {
-        return self::test_dir($dir);
+        return self::testDir($dir);
     }
 
-    static function test_tools_v2_dir($dir)
+    static function testToolsV2Dir($dir)
     {
-        return self::test_dir($dir);
+        return self::testDir($dir);
     }
 
-    static function test_cache_v2_dir($dir)
+    static function testCacheV2Dir($dir)
     {
-        return self::test_dir($dir);
+        return self::testDir($dir);
     }
 
-    static function test_download_dir($dir)
+    static function testDownloadDir($dir)
     {
-        return self::test_dir($dir);
+        return self::testDir($dir);
     }
 
-    static function test_mails_dir($dir)
+    static function testMailsDir($dir)
     {
-        return self::test_dir($dir, true);
+        return self::testDir($dir, true);
     }
 
-    static function test_translations_dir($dir)
+    static function testTranslationsDir($dir)
     {
-        return self::test_dir($dir, true);
+        return self::testDir($dir, true);
     }
 
-    static function test_theme_lang_dir($dir)
-    {
-        if (!file_exists($dir)) {
-            return true;
-        }
-
-        return self::test_dir($dir, true);
-    }
-
-    static function test_theme_cache_dir($dir)
+    static function testThemeLangDir($dir)
     {
         if (!file_exists($dir)) {
             return true;
         }
 
-        return self::test_dir($dir, true);
+        return self::testDir($dir, true);
     }
 
-    static function test_customizable_products_dir($dir)
+    static function testThemeCacheDir($dir)
     {
-        return self::test_dir($dir);
+        if (!file_exists($dir)) {
+            return true;
+        }
+
+        return self::testDir($dir, true);
     }
 
-    static function test_virtual_products_dir($dir)
+    static function testCustomizableProductsDir($dir)
     {
-        return self::test_dir($dir);
+        return self::testDir($dir);
     }
 
-    static function test_mcrypt()
+    static function testVirtualProductsDir($dir)
+    {
+        return self::testDir($dir);
+    }
+
+    static function testMcrypt()
     {
         return function_exists('mcrypt_encrypt');
     }
 
-    static function test_dom()
+    static function testDom()
     {
         return extension_loaded('Dom');
     }
 
-    static function test_mobile()
+    static function testMobile()
     {
         return true;
     }

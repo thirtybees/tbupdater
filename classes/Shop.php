@@ -72,7 +72,7 @@ class Shop extends ObjectModel
     /** @var string Domain SSL of main url (read only) */
     public $domain_ssl;
 
-    /** @var ShopGroup Shop group object */
+    /** @var \ShopGroup Shop group object */
     protected $group;
 
     /** @var array List of shops cached */
@@ -245,7 +245,7 @@ class Shop extends ObjectModel
         }
 
         // Find matching shop URL.
-        foreach (ShopUrl::get() as $url) {
+        foreach (ShopUrl::getShopUrls() as $url) {
             if ($url['id_shop'] == $this->id && $url['main']) {
                 break;
             }

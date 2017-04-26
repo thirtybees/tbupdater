@@ -171,8 +171,12 @@ class Upgrader
             $results = Promise\settle($promises)->wait();
             foreach ($results as $key => $result) {
                 $this->versionInfo[$key] = [];
-                if (isset($result['value']) && $result['value'] instanceof GuzzleHttp\Psr7\Response) {
-                    $versionsInfo = (string) $result['value']->getBody();
+                $value = null;
+                if (isset($result['value'])) {
+                    $value = $result['value'];
+                }
+                if ($value instanceof GuzzleHttp\Psr7\Response) {
+                    $versionsInfo = (string) $value->getBody();
                     $versionsInfo = json_decode($versionsInfo, true);
                     foreach ($versionsInfo as $version => $versionInfo) {
                         $this->versionInfo[$key][$version] = $versionInfo;

@@ -2425,6 +2425,32 @@ class Tools
     }
 
     /**
+     * getShopDomainSsl returns domain name according to configuration and depending on ssl activation
+     *
+     * @param bool $http     if true, return domain name with protocol
+     * @param bool $entities if true, convert special chars to HTML entities
+     *
+     * @return string domain
+     *
+     * @since   1.0.0
+     * @version 1.0.0 Initial version
+     */
+    public static function getShopDomainSsl($http = false, $entities = false)
+    {
+        if (!$domain = ShopUrl::getMainShopDomainSSL()) {
+            $domain = Tools::getHttpHost();
+        }
+        if ($entities) {
+            $domain = htmlspecialchars($domain, ENT_COMPAT, 'UTF-8');
+        }
+        if ($http) {
+            $domain = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://').$domain;
+        }
+
+        return $domain;
+    }
+
+    /**
      * @param null   $path
      * @param null   $rewrite_settings
      * @param null   $cache_control
