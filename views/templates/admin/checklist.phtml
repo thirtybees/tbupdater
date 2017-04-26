@@ -28,7 +28,7 @@
 $currentPsConfig = $this->getcheckCurrentPsConfig();
 $picOk = '<i class="icon icon-check" style="color: limegreen"></i>';
 $picNok = '<i class="icon icon-times" style="color: firebrick">';
-$picWarn = '<i class="icon icon-checkmark" style="color: orange">';
+$picWarn = '<i class="icon icon-check" style="color: orange">';
 $adminDir = trim(str_replace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_), DIRECTORY_SEPARATOR);
 $maxExecTime = ini_get('max_execution_time');
 $report = '';
@@ -82,7 +82,7 @@ TbUpdaterModule\ConfigurationTest::testDir($adminDir.DIRECTORY_SEPARATOR.$tools-
 			</tr>
 			<tr>
 				<td><?php echo sprintf($this->l('PHP\'s max_execution_time setting has a high value or is disabled entirely (current value: %s)'), ($maxExecTime == 0 ? $this->l('unlimited') : sprintf($this->l('%s seconds'), $maxExecTime))); ?></td>
-				<td><?php echo($maxExecTime == 0 ? $picOk : $picWarn); ?></td>
+				<td><?php echo (!$maxExecTime || $maxExecTime >= 30) ? $picOk : $picNok; ?></td>
 			</tr>
 		</table>
 		<div class="panel-footer"><strong><?php echo $this->l('Please also make sure you make a full manual backup of your files and database.'); ?></strong></div>

@@ -856,15 +856,18 @@ class TbUpdater extends Module
         static $allowedArray;
 
         if (empty($allowedArray)) {
+            $tools = UpgraderTools::getInstance();
+            $adminDir = trim(str_replace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_), DIRECTORY_SEPARATOR);
+            $maxExecutionTime = ini_get('max_execution_time');
+
             $allowedArray = [];
             $allowedArray['fopen'] = ConfigurationTest::testFopen() || ConfigurationTest::testCurl();
             $allowedArray['root_writable'] = $this->getRootWritable();
-            $tools = UpgraderTools::getInstance();
-            $adminDir = trim(str_replace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_), DIRECTORY_SEPARATOR);
-            $allowedArray['admin_au_writable'] = ConfigurationTest::testDir($adminDir.DIRECTORY_SEPARATOR.$tools->autoupgradeDir, false, $report, true);
+            $allowedArray['admin_au_writable'] = ConfigurationTest::testDir($adminDir.DIRECTORY_SEPARATOR.$tools->autoupgradeDir, false, $report, false);
             $allowedArray['shop_deactivated'] = (!Configuration::get('PS_SHOP_ENABLE') || (isset($_SERVER['HTTP_HOST']) && in_array($_SERVER['HTTP_HOST'], ['127.0.0.1', 'localhost'])));
             $allowedArray['cache_deactivated'] = !(defined('_PS_CACHE_ENABLED_') && _PS_CACHE_ENABLED_);
             $allowedArray['module_version_ok'] = true;
+            $allowedArray['max_execution_time'] = !$maxExecutionTime || $maxExecutionTime >= 30;
         }
 
         return $allowedArray;
