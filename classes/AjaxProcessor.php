@@ -923,29 +923,6 @@ class AjaxProcessor
      */
     public function ajaxProcessUpgradeModules()
     {
-//        if (UpgraderTools::getConfig(UpgraderTools::SWITCH_TO_DEFAULT_THEME)) {
-//            if (Db::getInstance()->insert(
-//                'theme',
-//                [
-//                    'name'                => 'community-theme-default',
-//                    'directory'           => 'community-theme-default',
-//                    'responsive'          => 1,
-//                    'default_left_column' => 1,
-//                    'product_per_page'    => 12,
-//                ]
-//            )) {
-//                $idTheme = Db::getInstance()->Insert_ID();
-//                Db::getInstance()->update(
-//                    'shop',
-//                    [
-//                        'id_theme' => $idTheme,
-//                    ]
-//                );
-//            }
-//            $this->nextDesc = $this->l('Switched to default theme.');
-//            $this->nextQuickInfo[] = $this->l('Switched to default theme.');
-//        }
-
         $this->next = 'upgradeComplete';
 
         return true;
