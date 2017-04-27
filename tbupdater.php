@@ -389,7 +389,7 @@ class TbUpdater extends Module
                 if (isset($module['description'][Tools::strtolower($locale)])) {
                     $module['description'] = $module['description'][Tools::strtolower($locale)];
                 } else {
-                    $module['description'] = $module['displayName']['en-us'];
+                    $module['description'] = $module['description']['en-us'];
                 }
             }
         }
