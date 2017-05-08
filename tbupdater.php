@@ -383,13 +383,19 @@ class TbUpdater extends Module
             foreach ($modules as &$module) {
                 if (isset($module['displayName'][Tools::strtolower($locale)])) {
                     $module['displayName'] = $module['displayName'][Tools::strtolower($locale)];
-                } else {
+                } elseif (isset($module['displayName']['en-us'])) {
                     $module['displayName'] = $module['displayName']['en-us'];
+                } else {
+                    // Broken feed
+                    continue;
                 }
                 if (isset($module['description'][Tools::strtolower($locale)])) {
                     $module['description'] = $module['description'][Tools::strtolower($locale)];
-                } else {
+                } elseif (isset($module['description']['en-us'])) {
                     $module['description'] = $module['description']['en-us'];
+                } else {
+                    // Broken feed
+                    continue;
                 }
             }
         }
