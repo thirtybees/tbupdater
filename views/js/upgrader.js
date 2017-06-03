@@ -42,7 +42,7 @@
 
       if (msg) {
         $infoStep
-          .append(msg + '<div class="clear"></div>')
+          .append('<p>' + msg + '</p>')
           .attr({ scrollTop: $infoStep.attr('scrollHeight') }, 1);
       }
     }
@@ -60,9 +60,8 @@
         $errorDuringUpgrade.show();
 
         for (i = 0; i < arrError.length; i += 1) {
-          $infoError.append(arrError[i] + '<br />');
+          $infoError.append('<p>' + arrError[i] + '</p>');
         }
-        $infoError.attr({ scrollTop: $infoError.attr('scrollHeight') }, 1);
       }
     }
 

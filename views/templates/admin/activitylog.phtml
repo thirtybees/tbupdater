@@ -31,7 +31,9 @@
     <div id="upgradeResultToDoList"></div>
     <div id="currentlyProcessing" class="col-md-12" style="display:none;">
         <h4 id="pleaseWait"><?php echo $this->l('Currently processing'); ?> <img class="pleaseWait" src="<?php echo __PS_BASE_URI__; ?>img/loader.gif"/></h4>
-        <h4 id="infoStep" class="processing" ><?php echo $this->l('Analyzing the situation...'); ?></h4>
+        <div id="infoStep" class="processing">
+            <p><?php echo $this->l('Analyzing the situation...'); ?></p>
+        </div>
     </div>
     <div id="errorDuringUpgrade" class="col-md-12" style="display:none">
         <h4><?php echo $this->l('Errors'); ?></h4>
