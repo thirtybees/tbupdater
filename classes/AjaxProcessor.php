@@ -179,9 +179,9 @@ class AjaxProcessor
         // Initialize things here at the first step
         if ($this->action === 'upgradeNow') {
             if (!$this->resetTables()) {
+                $this->next = 'error';
                 $this->nextErrors[] = $this->l('Could not prepare the DB tables for the update.');
                 $this->error = 1;
-                $this->next = 'error';
                 $this->status = 'error';
 
                 $this->displayAjax();
@@ -285,10 +285,8 @@ class AjaxProcessor
         foreach ($testDirs as $dir) {
             $report = '';
             if (!ConfigurationTest::testDir($dir, true, $report)) {
-                $this->nextQuickInfo[] = $report;
-                $this->nextErrors[] = $report;
-                $this->nextDesc = $report;
                 $this->next = 'error';
+                $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $report;
 
                 return false;
             }
@@ -335,34 +333,28 @@ class AjaxProcessor
                         $this->nextDesc = $this->l('Download complete. Now extracting...');
                     } else {
                         if ($md5CoreFile !== $this->upgrader->md5Core) {
-                            $this->nextQuickInfo[] = sprintf($this->l('Download complete but the md5 sum of the core package does not match (%s).'), $md5CoreFile);
-                            $this->nextErrors[] = sprintf($this->l('Download complete but md5 the sum of the core package does not match (%s).'), $md5CoreFile);
+                            $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Download complete but the md5 sum of the core package does not match (%s).'), $md5CoreFile);
                         }
                         if ($md5ExtraFile !== $this->upgrader->md5Extra) {
-                            $this->nextQuickInfo[] = sprintf($this->l('Download complete but md5 sum of the extra package does not match (%s).'), $md5ExtraFile);
-                            $this->nextErrors[] = sprintf($this->l('Download complete but md5 sum of the extra package does not match (%s).'), $md5ExtraFile);
+                            $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Download complete but md5 sum of the extra package does not match (%s).'), $md5ExtraFile);
                         }
 
                         $this->next = 'error';
                         $this->nextDesc = $this->l('Download complete but the md5 sums do not match. Operation aborted.');
                     }
                 } else {
-                    $this->nextDesc = $this->l('Error during download');
-                    $this->nextQuickInfo[] = $this->l('Error during download');
-                    $this->nextErrors[] = $this->l('Error during download');
-
                     $this->next = 'error';
+                    $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('Error during download');
+
                 }
             } else {
-                $this->nextDesc = $this->l('Download directory is not writable.');
-                $this->nextQuickInfo[] = $this->l('Download directory is not writable.');
-                $this->nextErrors[] = $report;
                 $this->next = 'error';
+                $this->nextDesc = $this->nextQuickInfo[] = $this->l('Download directory is not writable.');
+                $this->nextErrors[] = $report;
             }
         } else {
-            $this->nextQuickInfo[] = $this->l('You need allow_url_fopen or cURL enabled for automatic download to work.');
-            $this->nextErrors[] = $this->l('You need allow_url_fopen or cURL enabled for automatic download to work.');
             $this->next = 'error';
+            $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('You need allow_url_fopen or cURL enabled for automatic download to work.');
             $this->nextDesc = sprintf($this->l('You need allow_url_fopen or cURL enabled for automatic download to work. You can also manually upload it in filepath %s.'), $this->getCoreFilePath());
         }
     }
@@ -407,10 +399,9 @@ class AjaxProcessor
                 return true;
             }
         } else {
-            $this->nextDesc = $this->l('Extraction directory is not writable.');
-            $this->nextQuickInfo[] = $this->l('Extraction directory is not writable.');
-            $this->nextErrors[] = $report;
             $this->next = 'error';
+            $this->nextDesc = $this->nextQuickInfo[] = $this->l('Extraction directory is not writable.');
+            $this->nextErrors[] = $report;
         }
 
         return false;
@@ -437,8 +428,7 @@ class AjaxProcessor
             $this->next = 'error';
             $this->error = 1;
             $this->nextDesc = $this->l('Error during backupFiles');
-            $this->nextErrors[] = $this->l('[ERROR] backupFiles filename has not been set');
-            $this->nextQuickInfo[] = $this->l('[ERROR] backupFiles filename has not been set');
+            $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('[ERROR] backupFiles filename has not been set');
 
             return false;
         }
@@ -506,8 +496,7 @@ class AjaxProcessor
                             $this->nextQuickInfo[] = sprintf($this->l('File %1$s (size: %2$s) added to archive.', 'AdminThirtyBeesMigrate', true), $archiveFilename, $size);
                         }
                     } else {
-                        $this->nextQuickInfo[] = sprintf($this->l('File %1$s (size: %2$s) has been skipped during backup.', 'AdminThirtyBeesMigrate', true), $archiveFilename, $size);
-                        $this->nextErrors[] = sprintf($this->l('File %1$s (size: %2$s) has been skipped during backup.', 'AdminThirtyBeesMigrate', true), $archiveFilename, $size);
+                        $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('File %1$s (size: %2$s) has been skipped during backup.', 'AdminThirtyBeesMigrate', true), $archiveFilename, $size);
                     }
                 }
 
@@ -572,10 +561,9 @@ class AjaxProcessor
         $relativeBackupPath = str_replace(_PS_ROOT_DIR_, '', $this->tools->backupPath);
         $report = '';
         if (!ConfigurationTest::testDir($relativeBackupPath, false, $report)) {
-            $this->nextDesc = $this->l('Backup directory is not writable ');
-            $this->nextQuickInfo[] = 'Backup directory is not writable ';
-            $this->nextErrors[] = $report;
             $this->next = 'error';
+            $this->nextDesc = $this->nextQuickInfo[] = 'Backup directory is not writable.';
+            $this->nextErrors[] = $report;
             $this->error = 1;
 
             return false;
@@ -647,8 +635,7 @@ class AjaxProcessor
                 if (file_exists($backupFile)) {
                     $this->next = 'error';
                     $this->error = 1;
-                    $this->nextErrors[] = sprintf($this->l('Backup file %s already exists. Operation aborted.'), $backupFile);
-                    $this->nextQuickInfo[] = sprintf($this->l('Backup file %s already exists. Operation aborted.'), $backupFile);
+                    $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Backup file %s already exists. Operation aborted.'), $backupFile);
                 }
 
                 if (function_exists('bzopen')) {
@@ -662,11 +649,10 @@ class AjaxProcessor
                 }
 
                 if ($fp === false) {
-                    $this->nextErrors[] = sprintf($this->l('Unable to create backup database file %s.'), addslashes($backupFile));
-                    $this->nextQuickInfo[] = sprintf($this->l('Unable to create backup database file %s.'), addslashes($backupFile));
                     $this->next = 'error';
-                    $this->error = 1;
                     $this->nextDesc = $this->l('Error during database backup.');
+                    $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Unable to create backup database file %s.'), addslashes($backupFile));
+                    $this->error = 1;
 
                     return false;
                 }
@@ -694,11 +680,10 @@ class AjaxProcessor
                     if (isset($backupFile) && file_exists($backupFile)) {
                         unlink($backupFile);
                     }
-                    $this->nextErrors[] = sprintf($this->l('An error occurred while backing up. Unable to obtain the schema of %s'), $table);
-                    $this->nextQuickInfo[] = sprintf($this->l('An error occurred while backing up. Unable to obtain the schema of %s'), $table);
                     $this->next = 'error';
-                    $this->error = 1;
                     $this->nextDesc = $this->l('Error during database backup.');
+                    $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('An error occurred while backing up. Unable to obtain the schema of %s'), $table);
+                    $this->error = 1;
 
                     return false;
                 }
@@ -809,8 +794,7 @@ class AjaxProcessor
             if (file_exists($backupFile)) {
                 unlink($backupFile);
             }
-            $this->nextErrors[] = sprintf($this->l('No valid tables were found to back up. Backup of file %s canceled.'), $backupFile);
-            $this->nextQuickInfo[] = sprintf($this->l('No valid tables were found to back up. Backup of file %s canceled.'), $backupFile);
+            $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('No valid tables were found to back up. Backup of file %s canceled.'), $backupFile);
             $this->error = 1;
             $this->nextDesc = sprintf($this->l('Error during database backup for file %s.'), $backupFile);
 
@@ -865,10 +849,8 @@ class AjaxProcessor
             $addFilesForUpgrade = [];
             foreach ($filepathListDiff as $version => $diffFile) {
                 if (!file_exists($diffFile)) {
-                    $this->nextErrors[] = $this->l('One or more lists of files to upgrade are missing');
-                    $this->nextDesc = $this->l('One or more lists of files to upgrade are missing');
-                    $this->nextQuickInfo = $this->l('One or more lists of files to upgrade are missing');
                     $this->next = 'error';
+                    $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('One or more lists of files to upgrade are missing.');
 
                     return false;
                 }
@@ -914,17 +896,14 @@ class AjaxProcessor
             $fileActions = FileActions::getFileActions(UpgraderTools::$loopUpgradeFiles);
 
             if (empty($fileActions)) {
-                $this->nextQuickInfo[] = $this->l('[ERROR] Unable to find files to upgrade.');
-                $this->nextErrors[] = $this->l('[ERROR] Unable to find files to upgrade.');
-                $this->nextDesc = $this->l('Unable to list files to upgrade');
                 $this->next = 'error';
+                $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('[ERROR] Unable to find files to upgrade.');
 
                 return false;
             }
             $count = FileActions::count();
-            $this->nextQuickInfo[] = sprintf($this->l('%s files will be upgraded.'), $count);
-            $this->nextDesc = sprintf($this->l('%s files will be upgraded.'), $count);
             $this->next = 'upgradeFiles';
+            $this->nextDesc = $this->nextQuickInfo[] = sprintf($this->l('%s files will be upgraded.'), $count);
             $this->stepDone = false;
 
             return true;
@@ -934,9 +913,7 @@ class AjaxProcessor
         $this->next = 'upgradeFiles';
         if (!is_array($fileActions)) {
             $this->next = 'error';
-            $this->nextDesc = $this->l('`fileActions` is not an array');
-            $this->nextQuickInfo[] = $this->l('`fileActions` is not an array');
-            $this->nextErrors[] = $this->l('`fileActions` is not an array');
+            $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('`fileActions` is not an array');
 
             return false;
         }
@@ -944,8 +921,7 @@ class AjaxProcessor
             if (!$this->upgradeThisFile($fileAction)) {
                 // put the file back to the begin of the list
                 $this->next = 'error';
-                $this->nextQuickInfo[] = sprintf($this->l('Error when trying to upgrade file %s.'), $fileAction['path']);
-                $this->nextErrors[] = sprintf($this->l('Error when trying to upgrade file %s.'), $fileAction['path']);
+                $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Error when trying to upgrade file %s.'), $fileAction['path']);
                 break;
             }
         }
@@ -1021,8 +997,7 @@ class AjaxProcessor
 
         $this->status = 'ok';
         $this->next = 'upgradeComplete';
-        $this->nextDesc = $this->l('The database has been cleaned.');
-        $this->nextQuickInfo[] = $this->l('The database has been cleaned.');
+        $this->nextDesc = $this->nextQuickInfo[] = $this->l('The database has been cleaned.');
     }
 
     /**
@@ -1079,8 +1054,7 @@ class AjaxProcessor
             }
             if (!is_file($this->tools->backupPath.DIRECTORY_SEPARATOR.$this->restoreFilesFilename)) {
                 $this->next = 'error';
-                $this->nextQuickInfo[] = sprintf('[ERROR] file %s is missing : unable to restore files. Operation aborted.', $this->restoreFilesFilename);
-                $this->nextErrors[] = $this->nextDesc = sprintf($this->l('[ERROR] File %s is missing: unable to restore files. Operation aborted.'), $this->restoreFilesFilename);
+                $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('[ERROR] File %s is missing: unable to restore files. Operation aborted.'), $this->restoreFilesFilename);
 
                 return false;
             }
@@ -1100,8 +1074,7 @@ class AjaxProcessor
             }
             if (count($this->restoreDbFilenames) == 0) {
                 $this->next = 'error';
-                $this->nextQuickInfo[] = $this->l('[ERROR] No backup database files found: it would be impossible to restore the database. Operation aborted.');
-                $this->nextErrors[] = $this->nextDesc = $this->l('[ERROR] No backup database files found: it would be impossible to restore the database. Operation aborted.');
+                $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('[ERROR] No backup database files found: it would be impossible to restore the database. Operation aborted.');
 
                 return false;
             }
@@ -1196,8 +1169,8 @@ class AjaxProcessor
             $currentDbFilename = array_shift($this->restoreDbFilenames);
             if (!preg_match('#auto-backupdb_#', $currentDbFilename, $match)) {
                 $this->next = 'error';
+                $this->nextDesc = $this->nextQuickInfo[] = $this->l(sprintf('%s: File format does not match.', $currentDbFilename));
                 $this->error = 1;
-                $this->nextQuickInfo[] = $this->nextDesc = $this->l(sprintf('%s: File format does not match.', $currentDbFilename));
 
                 return false;
             }
@@ -1239,9 +1212,8 @@ class AjaxProcessor
             }
 
             if (empty($content)) {
-                $this->nextErrors[] = $this->l('Database backup is empty.');
-                $this->nextQuickInfo[] = $this->l('Database backup is empty.');
                 $this->next = 'rollback';
+                $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('Database backup is empty.');
 
                 return false;
             }
@@ -1303,11 +1275,11 @@ class AjaxProcessor
                         if (is_array($listQuery)) {
                             array_unshift($listQuery, $query);
                         }
-                        $this->nextErrors[] = $this->l('[SQL ERROR] ').$query.' - '.$this->db->getMsgError();
-                        $this->nextQuickInfo[] = $this->l('[SQL ERROR] ').$query.' - '.$this->db->getMsgError();
+
                         $this->next = 'error';
-                        $this->error = 1;
                         $this->nextDesc = $this->l('Error during database restoration');
+                        $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('[SQL ERROR] ').$query.' - '.$this->db->getMsgError();
+                        $this->error = 1;
                         unlink($this->tools->autoupgradePath.DIRECTORY_SEPARATOR.UpgraderTools::TO_RESTORE_QUERY_LIST);
 
                         return false;
@@ -1432,8 +1404,7 @@ class AjaxProcessor
     {
         if (!is_file($fromFile)) {
             $this->next = 'error';
-            $this->nextQuickInfo[] = sprintf($this->l('%s is not a file'), $fromFile);
-            $this->nextErrors[] = sprintf($this->l('%s is not a file'), $fromFile);
+            $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('%s is not a file'), $fromFile);
 
             return false;
         }
@@ -1441,8 +1412,7 @@ class AjaxProcessor
         if (!file_exists($toDir)) {
             if (!mkdir($toDir, 0777, true)) {
                 $this->next = 'error';
-                $this->nextQuickInfo[] = sprintf($this->l('Unable to create directory %s.'), $toDir);
-                $this->nextErrors[] = sprintf($this->l('Unable to create directory %s.'), $toDir);
+                $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Unable to create directory %s.'), $toDir);
 
                 return false;
             } else {
@@ -1463,14 +1433,12 @@ class AjaxProcessor
 
                 return true;
             } else {
-                $this->nextQuickInfo[] = sprintf($this->l('zip->extractTo(): unable to use %s as extract destination.'), $toDir);
-                $this->nextErrors[] = sprintf($this->l('zip->extractTo(): unable to use %s as extract destination.'), $toDir);
+                $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('zip->extractTo(): unable to use %s as extract destination.'), $toDir);
 
                 return false;
             }
         } elseif (isset($zip->filename) && $zip->filename) {
-            $this->nextQuickInfo[] = sprintf($this->l('Unable to open zipFile %s'), $fromFile);
-            $this->nextErrors[] = sprintf($this->l('Unable to open zipFile %s'), $fromFile);
+            $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Unable to open zipFile %s'), $fromFile);
 
             return false;
         }
@@ -1492,10 +1460,9 @@ class AjaxProcessor
         $dir = _PS_ROOT_DIR_.DIRECTORY_SEPARATOR.'modules';
 
         if (!is_dir($dir)) {
-            $this->nextQuickInfo[] = sprintf($this->l('[ERROR] %s does not exist or is not a directory.'), $dir);
-            $this->nextErrors[] = sprintf($this->l('[ERROR] %s does not exist or is not a directory.'), $dir);
-            $this->nextDesc = $this->l('Nothing has been extracted. It seems the unzip step has been skipped.');
             $this->next = 'error';
+            $this->nextDesc = $this->l('Nothing has been extracted. It seems the unzip step has been skipped.');
+            $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('[ERROR] %s does not exist or is not a directory.'), $dir);
 
             return false;
         }
@@ -1563,8 +1530,7 @@ class AjaxProcessor
             $oldversion = _TB_VERSION_;
         } else {
             $this->next = 'error';
-            $this->nextQuickInfo[] = $this->l('The config/settings.inc.php file was not found.');
-            $this->nextErrors[] = $this->l('The config/settings.inc.php file was not found.');
+            $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('The config/settings.inc.php file was not found.');
 
             return false;
         }
@@ -1584,8 +1550,7 @@ class AjaxProcessor
         if ($resultDB !== 0) {
             // $logger->logError('Invalid database configuration.');
             $this->next = 'error';
-            $this->nextQuickInfo[] = $this->l('Invalid database configuration');
-            $this->nextErrors[] = $this->l('Invalid database configuration');
+            $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('Invalid database configuration');
 
             return false;
         }
@@ -1597,9 +1562,7 @@ class AjaxProcessor
 
         if (!file_exists($upgradeDirSql)) {
             $this->next = 'error';
-            $this->nextDesc = $this->l('Unable to find SQL upgrade directory in the installation path.');
-            $this->nextQuickInfo[] = $this->l('Unable to find SQL upgrade directory in the installation path.');
-            $this->nextErrors[] = $this->l('Unable to find SQL upgrade directory in the installation path.');
+            $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('Unable to find SQL upgrade directory in the installation path.');
 
             return false;
         }
@@ -1614,8 +1577,7 @@ class AjaxProcessor
         }
         if (empty($upgradeFiles)) {
             $this->next = 'error';
-            $this->nextQuickInfo[] = sprintf($this->l('Cannot find the SQL upgrade files. Please check that the %s folder is not empty.'), $upgradeDirSql);
-            $this->nextErrors[] = sprintf($this->l('Cannot find the SQL upgrade files. Please check that the %s folder is not empty.'), $upgradeDirSql);
+            $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Cannot find the SQL upgrade files. Please check that the %s folder is not empty.'), $upgradeDirSql);
 
             // fail 31
             return false;
@@ -1649,15 +1611,13 @@ class AjaxProcessor
             $file = $upgradeDirSql.DIRECTORY_SEPARATOR.$version.'.sql';
             if (!file_exists($file)) {
                 $this->next = 'error';
-                $this->nextQuickInfo[] = sprintf($this->l('Error while loading SQL upgrade file "%s.sql".'), $version);
-                $this->nextErrors[] = sprintf($this->l('Error while loading SQL upgrade file "%s.sql".'), $version);
+                $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Error while loading SQL upgrade file "%s.sql".'), $version);
 
                 return false;
             }
             if (!$sqlContent = file_get_contents($file)."\n") {
                 $this->next = 'error';
-                $this->nextQuickInfo[] = $this->l(sprintf('Error while loading SQL upgrade file %s.', $version));
-                $this->nextErrors[] = $this->l(sprintf('Error while loading sql SQL file %s.', $version));
+                $this->nextErrors[] = $this->nextQuickInfo[] = $this->l(sprintf('Error while loading sql SQL file %s.', $version));
 
                 return false;
             }
@@ -1703,8 +1663,7 @@ class AjaxProcessor
                             $funcName = str_replace($pattern[0], '', $php[0]);
 
                             if (!file_exists(_PS_INSTALLER_PHP_UPGRADE_DIR_.strtolower($funcName).'.php')) {
-                                $this->nextQuickInfo[] = '<div class="upgradeDbError">[ERROR] '.$upgradeFile.' PHP - missing file '._PS_INSTALLER_PHP_UPGRADE_DIR_.strtolower($funcName).'.php</div>';
-                                $this->nextErrors[] = '[ERROR] '.$upgradeFile.' PHP - missing file '._PS_INSTALLER_PHP_UPGRADE_DIR_.strtolower($funcName).'.php';
+                                $this->nextErrors[] = $this->nextQuickInfo[] = '[ERROR] '.$upgradeFile.' PHP - missing file '._PS_INSTALLER_PHP_UPGRADE_DIR_.strtolower($funcName).'.php';
                                 $warningExist = true;
                             } else {
                                 require_once(_PS_INSTALLER_PHP_UPGRADE_DIR_.strtolower($funcName).'.php');
@@ -1713,20 +1672,13 @@ class AjaxProcessor
                         } /* Or an object method */
                         else {
                             $funcName = [$php[0], str_replace($pattern[0], '', $php[1])];
-                            $this->nextQuickInfo[] = '<div class="upgradeDbError">[ERROR] '.$upgradeFile.' PHP - Object Method call is forbidden ( '.$funcName.')</div>';
-                            $this->nextErrors[] = '[ERROR] '.$upgradeFile.' PHP - Object Method call is forbidden ('.$funcName.')';
+                            $this->nextErrors[] = $this->nextQuickInfo[] = '[ERROR] '.$upgradeFile.' PHP - Object Method call is forbidden ('.$funcName.')';
                             $warningExist = true;
                         }
 
                         if (isset($phpRes) && (is_array($phpRes) && !empty($phpRes['error'])) || $phpRes === false) {
                             // $this->next = 'error';
-                            $this->nextQuickInfo[] = '
-								<div class="upgradeDbError">
-									[ERROR] PHP '.$upgradeFile.' '.$query."\n".'
-									'.(empty($phpRes['error']) ? '' : $phpRes['error']."\n").'
-									'.(empty($phpRes['msg']) ? '' : ' - '.$phpRes['msg']."\n").'
-								</div>';
-                            $this->nextErrors[] = '
+                            $this->nextErrors[] = $this->nextQuickInfo[] = '
 								[ERROR] PHP '.$upgradeFile.' '.$query."\n".'
 								'.(empty($phpRes['error']) ? '' : $phpRes['error']."\n").'
 								'.(empty($phpRes['msg']) ? '' : ' - '.$phpRes['msg']."\n");
@@ -1921,9 +1873,7 @@ class AjaxProcessor
         if ($this->next === 'error') {
             return false;
         } elseif (!empty($warningExist) || $this->warningExists) {
-            $this->nextQuickInfo[] = $this->l('Warning detected during upgrade.');
-            $this->nextErrors[] = $this->l('Warning detected during upgrade.');
-            $this->nextDesc = $this->l('Warning detected during upgrade.');
+            $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('Warning detected during upgrade.');
         } else {
             $this->nextDesc = $this->l('Database upgrade completed');
         }
@@ -1994,8 +1944,7 @@ class AjaxProcessor
         if (!file_exists(INSTALL_PATH.DIRECTORY_SEPARATOR.$upgradeDirPhp)) {
             $this->next = 'error';
             $this->nextDesc = sprintf($this->l('%s directory is missing in archive or directory.'), INSTALL_PATH.DIRECTORY_SEPARATOR.$upgradeDirPhp);
-            $this->nextQuickInfo[] = sprintf($this->l('%s directory is missing in archive or directory.'), INSTALL_PATH.DIRECTORY_SEPARATOR.$upgradeDirPhp);
-            $this->nextErrors[] = sprintf($this->l('%s directory is missing in archive or directory.'), INSTALL_PATH.DIRECTORY_SEPARATOR.$upgradeDirPhp);
+            $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('%s directory is missing in archive or directory.'), INSTALL_PATH.DIRECTORY_SEPARATOR.$upgradeDirPhp);
 
             return false;
         }
@@ -2425,8 +2374,7 @@ class AjaxProcessor
 
                         return true;
                     } else {
-                        $this->nextQuickInfo[] = sprintf($this->l('[TRANSLATION] The translation files have not been merged into file %1$s. Switch to copy %2$s.'), $dest, $dest);
-                        $this->nextErrors[] = sprintf($this->l('[TRANSLATION] The translation files have not been merged into file %1$s. Switch to copy %2$s.'), $dest, $dest);
+                        $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('[TRANSLATION] The translation files have not been merged into file %1$s. Switch to copy %2$s.'), $dest, $dest);
                     }
                 }
 
@@ -2442,8 +2390,8 @@ class AjaxProcessor
                     return true;
                 } else {
                     $this->next = 'error';
-                    $this->nextQuickInfo[] = sprintf($this->l('Error while copying from %1$s to %2$s'), $orig, $dest);
-                    $this->nextErrors[] = $this->nextDesc = sprintf($this->l('Error while copying from %1$s to %2$s'), $orig, $dest);
+                    $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] =
+                        sprintf($this->l('Error while copying from %1$s to %2$s'), $orig, $dest);
 
                     return false;
                 }
