@@ -26,7 +26,6 @@
 /** @var TbUpdater $this */
 $upgrader = \TbUpdaterModule\Upgrader::getInstance();
 ?>
-<strong><?php echo $this->l('Going to update to thirty bees version'); ?>:</strong> <em id="selectedVersion"><?php echo $upgrader->version ?: $this->l('Nothing available'); ?></em>
 <div class="form-group">
 	<label for="channelSelect"><?php echo $this->l('Channel:'); ?></label>
 	<select id="channelSelect" name="channel" class="form-control fixed-width-xxl">
@@ -36,3 +35,4 @@ $upgrader = \TbUpdaterModule\Upgrader::getInstance();
 	</select>
 	<div id="channelSelectErrors" class="alert alert-danger" style="display:none"></div>
 </div>
+<strong><?php echo $this->l('Going to update to thirty bees version'); ?>:</strong> <em id="selectedVersion"><?php echo $upgrader->version ?: $this->l('Nothing available'); ?></em>

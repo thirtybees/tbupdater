@@ -30,7 +30,7 @@ $channel = UpgraderTools::getConfig('channel');
 
 <div id="upgradeButtonBlock" class="panel col-lg-12">
 	<div class="panel-heading"><i class="icon icon-wrench"></i> <?php echo $this->l('Start your Upgrade'); ?></div>
-	<div class="blocOneClickUpgrade">
+    <div class="blockOneClickUpgrade">
 		<strong><?php echo $this->l('Your current thirty bees version'); ?>:</strong>
 		<code><?php echo _TB_VERSION_; ?></code>
 	</div>
@@ -50,6 +50,7 @@ $channel = UpgraderTools::getConfig('channel');
         <?php else : ?>
             <?php $showBigButtonNewVersion = true; ?>
         <?php endif; ?>
+        <?php echo $this->displayAdminTemplate(__DIR__.'/channelselect.phtml'); ?>
         <?php if ($this->configOk()) : ?>
 			<p class="clearfix configOk">
 				<a href="" id="upgradeNow" class="upgradestep btn btn-primary btn-lg">
@@ -57,7 +58,6 @@ $channel = UpgraderTools::getConfig('channel');
 				</a>
 			</p>
         <?php endif; ?>
-        <?php echo $this->displayAdminTemplate(__DIR__.'/channelselect.phtml'); ?>
 	<?php else: ?>
 		<strong><?php echo $this->l('Make sure every item on the checklist is OK before you continue'); ?></strong>
     <?php endif; ?>
