@@ -283,11 +283,12 @@ class AjaxProcessor
         ];
 
         foreach ($testDirs as $dir) {
-            if (!ConfigurationTest::testDir($dir, true)) {
-                $this->nextQuickInfo[] = sprintf($this->l('The directory `%s` is not writable.'), $dir);
-                $this->nextErrors[] = sprintf($this->l('The directory `%s` is not writable.'), $dir);
+            $report = '';
+            if (!ConfigurationTest::testDir($dir, true, $report)) {
+                $this->nextQuickInfo[] = $report;
+                $this->nextErrors[] = $report;
+                $this->nextDesc = $report;
                 $this->next = 'error';
-                $this->nextDesc = sprintf($this->l('The directory `%s` is not writable.'), $dir);
 
                 return false;
             }
@@ -355,7 +356,7 @@ class AjaxProcessor
             } else {
                 $this->nextDesc = $this->l('Download directory is not writable.');
                 $this->nextQuickInfo[] = $this->l('Download directory is not writable.');
-                $this->nextErrors[] = sprintf($this->l('Download directory %s is not writable.'), $this->tools->downloadPath);
+                $this->nextErrors[] = $report;
                 $this->next = 'error';
             }
         } else {
@@ -408,7 +409,7 @@ class AjaxProcessor
         } else {
             $this->nextDesc = $this->l('Extraction directory is not writable.');
             $this->nextQuickInfo[] = $this->l('Extraction directory is not writable.');
-            $this->nextErrors[] = sprintf($this->l('Extraction directory %s is not writable.'), $coreFileDest);
+            $this->nextErrors[] = $report;
             $this->next = 'error';
         }
 
@@ -573,7 +574,7 @@ class AjaxProcessor
         if (!ConfigurationTest::testDir($relativeBackupPath, false, $report)) {
             $this->nextDesc = $this->l('Backup directory is not writable ');
             $this->nextQuickInfo[] = 'Backup directory is not writable ';
-            $this->nextErrors[] = 'Backup directory is not writable "'.$this->tools->backupPath.'"';
+            $this->nextErrors[] = $report;
             $this->next = 'error';
             $this->error = 1;
 
