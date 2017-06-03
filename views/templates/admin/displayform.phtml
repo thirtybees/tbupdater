@@ -1,18 +1,33 @@
 <?php
+/**
+ * Copyright (C) 2017 thirty bees
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@thirtybees.com so we can send you a copy immediately.
+ *
+ *  @author    thirty bees <modules@thirtybees.com>
+ *  @copyright 2017 thirty bees
+ *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+
 /** @var TbUpdater $this */
 use TbUpdaterModule\UpgraderTools;
 
 $confValues = UpgraderTools::getConfig();
 $required = false;
-
 ?>
 
-
-
 <div class="panel col-lg-6 generatedForm" id="<?php echo $name; ?>Block">
-	<div class="panel-heading"><?php if (isset($icon)) : ?><i class="<?php echo $icon; ?>"></i> <?php endif; ?><?php echo $tabname ?></div>
-	<div class="form-wrapper clearfix">
-    <?php foreach ($fields as $key => $field) :
+    <div class="panel-heading"><?php if (isset($icon)) : ?><i class="<?php echo $icon; ?>"></i> <?php endif; ?><?php echo $tabname ?></div>
+    <div class="form-wrapper clearfix">
+        <?php foreach ($fields as $key => $field) :
         if (isset($field['required']) && $field['required']) {
             $required = true;
         }
@@ -30,38 +45,38 @@ $required = false;
         }
         ?>
 
-	<div class="form-group">
-        <?php if (!in_array($field['type'], ['image', 'radio', 'container', 'container_end']) || isset($field['show'])) : ?>
-			<div class="col-lg-3 control-label"><?php echo ($field['title'] ? '<label >'.$field['title'].'</label>' : ''); ?></div>
-        <?php endif; ?>
-		<div class="col-lg-9">
-            <?php switch ($field['type']) :
-			case 'disabled': ?>
-                <?php echo $field['disabled']; ?>
-            <?php break; ?>
-            <?php case 'bool': ?>
-				<span class="switch prestashop-switch fixed-width-lg">
-					<input type="radio" name="<?php echo $key; ?>" id="<?php echo $key; ?>_on" value="1"<?php echo ($val ? ' checked="checked"' : ''); ?>>
-					<label for="<?php echo $key; ?>_on"><?php echo $this->l('Yes'); ?></label>
-					<input type="radio" name="<?php echo $key; ?>" id="<?php echo $key; ?>_off" value="0" <?php echo (!$val ? ' checked="checked"' : ''); ?>>
-					<label for="<?php echo $key; ?>_off"><?php echo $this->l('No'); ?></label>
-					<a class="slide-button btn"></a>
-				</span>
-            <?php break; ?>
-            <?php case 'select': ?>
-                <select id="<?php echo $key; ?>" name="<?php echo $key; ?>">
-                    <?php foreach ($field['choices'] as $cValue => $cKey) : ?>
-                        <option value="<?php echo (int) $cValue; ?>"<?php echo (($cValue == $val) ? ' selected="selected"' : ''); ?>><?php echo $cKey; ?></option>
-                    <?php endforeach; ?>
-                </select>
-            <?php break; ?>
-            <?php endswitch; ?>
-            <?php echo ((isset($field['required']) && $field['required'] && !in_array($field['type'], ['image', 'radio'])) ? ' <sup>*</sup>' : ''); ?>
-			<?php echo (isset($field['desc']) ? '<p style="clear:both">'.((isset($field['thumb']) && $field['thumb'] && $field['thumb']['pos'] == 'after') ? '<img src="'.$field['thumb']['file'].'" alt="'.$field['title'].'" title="'.$field['title'].'" style="float:left;" />' : '').$field['desc'].'</p>' : ''); ?>
-			<?php if (!in_array($field['type'], ['image', 'radio', 'container', 'container_end']) || isset($field['show'])) : ?>
-			<?php endif; ?>
+        <div class="form-group">
+            <?php if (!in_array($field['type'], ['image', 'radio', 'container', 'container_end']) || isset($field['show'])) : ?>
+                <div class="col-lg-3 control-label"><?php echo ($field['title'] ? '<label >'.$field['title'].'</label>' : ''); ?></div>
+            <?php endif; ?>
+            <div class="col-lg-9">
+                <?php switch ($field['type']) :
+                case 'disabled': ?>
+                    <?php echo $field['disabled']; ?>
+                <?php break; ?>
+                <?php case 'bool': ?>
+                    <span class="switch prestashop-switch fixed-width-lg">
+                        <input type="radio" name="<?php echo $key; ?>" id="<?php echo $key; ?>_on" value="1"<?php echo ($val ? ' checked="checked"' : ''); ?>>
+                        <label for="<?php echo $key; ?>_on"><?php echo $this->l('Yes'); ?></label>
+                        <input type="radio" name="<?php echo $key; ?>" id="<?php echo $key; ?>_off" value="0" <?php echo (!$val ? ' checked="checked"' : ''); ?>>
+                        <label for="<?php echo $key; ?>_off"><?php echo $this->l('No'); ?></label>
+                        <a class="slide-button btn"></a>
+                    </span>
+                <?php break; ?>
+                <?php case 'select': ?>
+                    <select id="<?php echo $key; ?>" name="<?php echo $key; ?>">
+                        <?php foreach ($field['choices'] as $cValue => $cKey) : ?>
+                            <option value="<?php echo (int) $cValue; ?>"<?php echo (($cValue == $val) ? ' selected="selected"' : ''); ?>><?php echo $cKey; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                <?php break; ?>
+                <?php endswitch; ?>
+                <?php echo ((isset($field['required']) && $field['required'] && !in_array($field['type'], ['image', 'radio'])) ? ' <sup>*</sup>' : ''); ?>
+                <?php echo (isset($field['desc']) ? '<p style="clear:both">'.((isset($field['thumb']) && $field['thumb'] && $field['thumb']['pos'] == 'after') ? '<img src="'.$field['thumb']['file'].'" alt="'.$field['title'].'" title="'.$field['title'].'" style="float:left;" />' : '').$field['desc'].'</p>' : ''); ?>
+                <?php if (!in_array($field['type'], ['image', 'radio', 'container', 'container_end']) || isset($field['show'])) : ?>
+                <?php endif; ?>
             </div>
-		</div>
-    <?php endforeach; ?>
+        </div>
+        <?php endforeach; ?>
     </div>
 </div>
