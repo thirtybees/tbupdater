@@ -428,7 +428,7 @@ class AjaxProcessor
             $this->next = 'error';
             $this->error = 1;
             $this->nextDesc = $this->l('Error during backupFiles');
-            $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('[ERROR] backupFiles filename has not been set');
+            $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('backupFiles filename has not been set');
 
             return false;
         }
@@ -897,7 +897,7 @@ class AjaxProcessor
 
             if (empty($fileActions)) {
                 $this->next = 'error';
-                $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('[ERROR] Unable to find files to upgrade.');
+                $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('Unable to find files to upgrade.');
 
                 return false;
             }
@@ -1054,7 +1054,7 @@ class AjaxProcessor
             }
             if (!is_file($this->tools->backupPath.DIRECTORY_SEPARATOR.$this->restoreFilesFilename)) {
                 $this->next = 'error';
-                $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('[ERROR] File %s is missing: unable to restore files. Operation aborted.'), $this->restoreFilesFilename);
+                $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('File %s is missing: unable to restore files. Operation aborted.'), $this->restoreFilesFilename);
 
                 return false;
             }
@@ -1074,7 +1074,7 @@ class AjaxProcessor
             }
             if (count($this->restoreDbFilenames) == 0) {
                 $this->next = 'error';
-                $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('[ERROR] No backup database files found: it would be impossible to restore the database. Operation aborted.');
+                $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('No backup database files found: it would be impossible to restore the database. Operation aborted.');
 
                 return false;
             }
@@ -1462,7 +1462,7 @@ class AjaxProcessor
         if (!is_dir($dir)) {
             $this->next = 'error';
             $this->nextDesc = $this->l('Nothing has been extracted. It seems the unzip step has been skipped.');
-            $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('[ERROR] %s does not exist or is not a directory.'), $dir);
+            $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('%s does not exist or is not a directory.'), $dir);
 
             return false;
         }
@@ -1663,7 +1663,7 @@ class AjaxProcessor
                             $funcName = str_replace($pattern[0], '', $php[0]);
 
                             if (!file_exists(_PS_INSTALLER_PHP_UPGRADE_DIR_.strtolower($funcName).'.php')) {
-                                $this->nextErrors[] = $this->nextQuickInfo[] = '[ERROR] '.$upgradeFile.' PHP - missing file '._PS_INSTALLER_PHP_UPGRADE_DIR_.strtolower($funcName).'.php';
+                                $this->nextErrors[] = $this->nextQuickInfo[] = $upgradeFile.' PHP - missing file '._PS_INSTALLER_PHP_UPGRADE_DIR_.strtolower($funcName).'.php';
                                 $warningExist = true;
                             } else {
                                 require_once(_PS_INSTALLER_PHP_UPGRADE_DIR_.strtolower($funcName).'.php');
@@ -1672,14 +1672,14 @@ class AjaxProcessor
                         } /* Or an object method */
                         else {
                             $funcName = [$php[0], str_replace($pattern[0], '', $php[1])];
-                            $this->nextErrors[] = $this->nextQuickInfo[] = '[ERROR] '.$upgradeFile.' PHP - Object Method call is forbidden ('.$funcName.')';
+                            $this->nextErrors[] = $this->nextQuickInfo[] = $upgradeFile.' PHP - Object Method call is forbidden ('.$funcName.')';
                             $warningExist = true;
                         }
 
                         if (isset($phpRes) && (is_array($phpRes) && !empty($phpRes['error'])) || $phpRes === false) {
                             // $this->next = 'error';
                             $this->nextErrors[] = $this->nextQuickInfo[] = '
-								[ERROR] PHP '.$upgradeFile.' '.$query."\n".'
+                                PHP '.$upgradeFile.' '.$query."\n".'
 								'.(empty($phpRes['error']) ? '' : $phpRes['error']."\n").'
 								'.(empty($phpRes['msg']) ? '' : ' - '.$phpRes['msg']."\n");
                             $warningExist = true;
