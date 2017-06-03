@@ -35,10 +35,12 @@ $tools = \TbUpdaterModule\UpgraderTools::getInstance();
 TbUpdaterModule\ConfigurationTest::testDir($adminDir.DIRECTORY_SEPARATOR.$tools->autoupgradeDir, true, $report);
 ?>
 
-<div class="panel col-md-6" id="currentConfigurationBlock">
+<div class="panel col-lg-6" id="currentConfigurationBlock">
 	<div class="panel-heading"><?php echo $this->l('The pre-Upgrade checklist'); ?></div>
     <?php if (!$this->configOk()) : ?>
-		<div class="clear"><br></div><p class="warn"><?php echo $this->l('The checklist is not OK. You can only upgrade your shop once all indicators are green.'); ?></p>
+    <div class="clear">
+        <p class="warn"><?php echo $this->l('The checklist is not OK. You can only upgrade your shop once all indicators are green.'); ?></p>
+    </div>
     <?php endif; ?>
 
 	<div id="currentConfiguration">
@@ -58,7 +60,6 @@ TbUpdaterModule\ConfigurationTest::testDir($adminDir.DIRECTORY_SEPARATOR.$tools-
             }
             $safeMode = in_array(Tools::strtolower($safeMode), [1, 'on']);
             ?>
-
 			<tr>
 				<td><?php echo $this->l('PHP\'s "Safe mode" option is turned off'); ?></td>
 				<td><?php echo(!$safeMode ? $picOk : $picWarn); ?></td>
@@ -80,6 +81,8 @@ TbUpdaterModule\ConfigurationTest::testDir($adminDir.DIRECTORY_SEPARATOR.$tools-
 				<td><?php echo (!$maxExecTime || $maxExecTime >= 30) ? $picOk : $picNok; ?></td>
 			</tr>
 		</table>
-		<div class="panel-footer"><strong><?php echo $this->l('Please also make sure you make a full manual backup of your files and database.'); ?></strong></div>
+        <div class="panel-footer">
+            <strong><?php echo $this->l('Please also make sure you make a full manual backup of your files and database.'); ?></strong>
+        </div>
 	</div>
 </div>

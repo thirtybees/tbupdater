@@ -862,6 +862,7 @@ class TbUpdater extends Module
             'type'         => 'bool',
             'desc'         => $this->l('Automatically back up your database and files in order to restore your shop if needed. This is experimental: you should still perform your own manual backup for safety.'),
         ];
+
         $this->backupOptions[UpgraderTools::BACKUP_IMAGES] = [
             'title'        => $this->l('Back up my images'),
             'cast'         => 'intval',
