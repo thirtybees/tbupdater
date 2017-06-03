@@ -659,27 +659,6 @@ class TbUpdater extends Module
     }
 
     /**
-     * @param string $channel
-     *
-     * @return string
-     *
-     * @since 1.0.0
-     */
-    public function getBlockSelectChannel($channel = 'master')
-    {
-        $download = $this->tools->downloadPath.DIRECTORY_SEPARATOR;
-        $params = [
-            'optChannels'     => ['stable', 'rc', 'beta', 'alpha'],
-            'selectedChannel' => is_string($channel) ? $channel : 'master',
-            'download'        => $download,
-            'channelDir'      => glob($download.'*.zip'),
-            'archiveFilename' => UpgraderTools::getConfig('archive.filename'),
-        ];
-
-        return $this->displayAdminTemplate(__DIR__.'/views/templates/admin/channelselector.phtml', $params);
-    }
-
-    /**
      * @return string
      *
      * @since 1.0.0
