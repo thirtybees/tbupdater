@@ -191,7 +191,7 @@ class TbUpdater extends Module
             $content .= $this->getUpdateContent();
         }
 
-        return $content.$this->display(__FILE__, 'views/templates/admin/configure.tpl');
+        return $content;
     }
 
     /**
@@ -237,12 +237,13 @@ class TbUpdater extends Module
         $html .= $this->displayAdminTemplate(__DIR__.'/views/templates/admin/welcome.phtml');
 
         $html .= $this->displayCurrentConfiguration();
-        $html .= $this->displayBlockUpgradeButton();
-
         $html .= $this->displayAdminTemplate(__DIR__.'/views/templates/admin/anotherchecklist.phtml');
+
+        $html .= $this->displayBlockUpgradeButton();
         $html .= $this->displayRollbackForm();
 
         $html .= $this->getJsInit();
+        $html .= $this->display(__FILE__, 'views/templates/admin/configure.tpl');
         $html .= '</div>';
 
         return $html;
