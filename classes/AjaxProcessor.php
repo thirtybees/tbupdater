@@ -283,14 +283,15 @@ class AjaxProcessor
             $report = '';
             if (!ConfigurationTest::testDir($dir, true, $report)) {
                 $this->next = 'error';
-                $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $report;
+                $this->nextDesc = $this->l('Directory tests failed.');
+                $this->nextErrors[] = $report;
 
                 return false;
             }
         }
 
-        $this->nextQuickInfo[] = $this->l('Directory tests complete.');
         $this->next = 'download';
+        $this->nextDesc = $this->l('Downloading... (this can take a while)');
 
         return true;
     }
