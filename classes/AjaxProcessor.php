@@ -223,12 +223,6 @@ class AjaxProcessor
      */
     public function ajaxProcessUpgradeNow()
     {
-        $this->nextDesc = $this->l('Starting upgrade...');
-        preg_match('#([0-9]+\.[0-9]+)(?:\.[0-9]+){1,2}#', _TB_VERSION_, $matches);
-
-        $this->next = 'testDirs';
-        $this->nextDesc = $this->l('Shop deactivated. Now downloading... (this can take a while)');
-
         $this->nextQuickInfo[] = sprintf($this->l('Archives will come from %s and %s'), $this->upgrader->coreLink, $this->upgrader->extraLink);
         $this->nextQuickInfo[] = sprintf($this->l('md5 hashes for core and extra should be resp. %s and %s'), $this->upgrader->md5Core, $this->upgrader->md5Extra);
 
@@ -261,6 +255,9 @@ class AjaxProcessor
                 }
             }
         }
+
+        $this->next = 'testDirs';
+        $this->nextDesc = $this->l('Testing directories...');
     }
 
     /**
