@@ -597,7 +597,6 @@ class TbUpdater extends Module
             $maxExecutionTime = ini_get('max_execution_time');
 
             $allowedArray = [];
-            $allowedArray['fopen'] = ConfigurationTest::testFopen() || ConfigurationTest::testCurl();
             $allowedArray['root_writable'] = $this->getRootWritable();
             $allowedArray['admin_au_writable'] = ConfigurationTest::testDir($adminDir.DIRECTORY_SEPARATOR.$tools->autoupgradeDir, false, $report, false);
             $allowedArray['shop_deactivated'] = (!Configuration::get('PS_SHOP_ENABLE') || (isset($_SERVER['HTTP_HOST']) && in_array($_SERVER['HTTP_HOST'], ['127.0.0.1', 'localhost'])));

@@ -65,10 +65,6 @@ TbUpdaterModule\ConfigurationTest::testDir($adminDir.DIRECTORY_SEPARATOR.$tools-
 				<td><?php echo(!$safeMode ? $picOk : $picWarn); ?></td>
 			</tr>
 			<tr>
-				<td><?php echo $this->l('PHP\'s "allow_url_fopen" option is turned on, or cURL is installed'); ?></td>
-				<td><?php echo((TbUpdaterModule\ConfigurationTest::testFopen() || TbUpdaterModule\ConfigurationTest::testCurl()) ? $picOk : $picNok); ?></td>
-			</tr>
-			<tr>
 				<td><?php echo $this->l('Your store is in maintenance mode').' '.(!$currentPsConfig['shop_deactivated'] ? '<br><form method="post" action="'.$this->baseUrl.'&putUnderMaintenance"><input type="submit" class="button" name="putUnderMaintenance" value="'.$this->l('Click here to put your shop under maintenance').'"></form>' : ''); ?></td>
 				<td><?php echo($currentPsConfig['shop_deactivated'] ? $picOk : $picNok); ?></td>
 			</tr>

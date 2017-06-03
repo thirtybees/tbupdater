@@ -86,16 +86,6 @@ class ConfigurationTest
         return ini_get('file_uploads');
     }
 
-    public static function testFopen()
-    {
-        return ini_get('allow_url_fopen');
-    }
-
-    public static function testCurl()
-    {
-        return function_exists('curl_init');
-    }
-
     public static function testSystem($funcs)
     {
         foreach ($funcs as $func) {

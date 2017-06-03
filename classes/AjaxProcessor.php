@@ -305,53 +305,47 @@ class AjaxProcessor
      */
     public function ajaxProcessDownload()
     {
-        if (ConfigurationTest::testFopen() || ConfigurationTest::testCurl()) {
-            if (!is_object($this->upgrader)) {
-                $this->upgrader = Upgrader::getInstance();
-            }
+        if (!is_object($this->upgrader)) {
+            $this->upgrader = Upgrader::getInstance();
+        }
 
-            $this->nextQuickInfo[] = sprintf($this->l('Downloading from %s and %s'), $this->upgrader->coreLink, $this->upgrader->extraLink);
-            $this->nextQuickInfo[] = sprintf($this->l('Archives will be saved to %s and %s'), $this->getCoreFilePath(), $this->getExtraFilePath());
-            if (file_exists($this->tools->downloadPath)) {
-                Tools::deleteDirectory($this->tools->downloadPath, false);
-                $this->nextQuickInfo[] = $this->l('Download directory has been cleared.');
-            }
-            $report = '';
-            $relativeDownloadPath = str_replace(_PS_ROOT_DIR_, '', $this->tools->downloadPath);
-            if (ConfigurationTest::testDir($relativeDownloadPath, false, $report)) {
-                $res = $this->upgrader->downloadLast($this->tools->downloadPath);
-                if ($res) {
-                    $md5CoreFile = md5_file(realpath($this->tools->downloadPath).DIRECTORY_SEPARATOR."thirtybees-v{$this->upgrader->version}.zip");
-                    $md5ExtraFile = md5_file(realpath($this->tools->downloadPath).DIRECTORY_SEPARATOR."thirtybees-extra-v{$this->upgrader->version}.zip");
-                    if ($md5CoreFile === $this->upgrader->md5Core && $md5ExtraFile === $this->upgrader->md5Extra) {
-                        $this->next = 'unzip';
-                        $this->nextDesc = $this->l('Download complete. Now extracting...');
-                    } else {
-                        if ($md5CoreFile !== $this->upgrader->md5Core) {
-                            $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Download complete but MD5 sum of the core package (%s) does not match.'), $md5CoreFile);
-                        }
-                        if ($md5ExtraFile !== $this->upgrader->md5Extra) {
-                            $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Download complete but MD5 sum of the extra package (%s) does not match.'), $md5ExtraFile);
-                        }
-
-                        $this->next = 'error';
-                        $this->nextDesc = $this->l('MD5 mismatch.');
-                    }
+        $this->nextQuickInfo[] = sprintf($this->l('Downloading from %s and %s'), $this->upgrader->coreLink, $this->upgrader->extraLink);
+        $this->nextQuickInfo[] = sprintf($this->l('Archives will be saved to %s and %s'), $this->getCoreFilePath(), $this->getExtraFilePath());
+        if (file_exists($this->tools->downloadPath)) {
+            Tools::deleteDirectory($this->tools->downloadPath, false);
+            $this->nextQuickInfo[] = $this->l('Download directory has been cleared.');
+        }
+        $report = '';
+        $relativeDownloadPath = str_replace(_PS_ROOT_DIR_, '', $this->tools->downloadPath);
+        if (ConfigurationTest::testDir($relativeDownloadPath, false, $report)) {
+            $res = $this->upgrader->downloadLast($this->tools->downloadPath);
+            if ($res) {
+                $md5CoreFile = md5_file(realpath($this->tools->downloadPath).DIRECTORY_SEPARATOR."thirtybees-v{$this->upgrader->version}.zip");
+                $md5ExtraFile = md5_file(realpath($this->tools->downloadPath).DIRECTORY_SEPARATOR."thirtybees-extra-v{$this->upgrader->version}.zip");
+                if ($md5CoreFile === $this->upgrader->md5Core && $md5ExtraFile === $this->upgrader->md5Extra) {
+                    $this->next = 'unzip';
+                    $this->nextDesc = $this->l('Download complete. Now extracting...');
                 } else {
-                    $this->next = 'error';
-                    $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('Download error.');
-                    $this->nextErrors[] = $this->l('Unknown error during download.');
+                    if ($md5CoreFile !== $this->upgrader->md5Core) {
+                        $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Download complete but MD5 sum of the core package (%s) does not match.'), $md5CoreFile);
+                    }
+                    if ($md5ExtraFile !== $this->upgrader->md5Extra) {
+                        $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Download complete but MD5 sum of the extra package (%s) does not match.'), $md5ExtraFile);
+                    }
 
+                    $this->next = 'error';
+                    $this->nextDesc = $this->l('MD5 mismatch.');
                 }
             } else {
                 $this->next = 'error';
-                $this->nextDesc = $this->nextQuickInfo[] = $this->l('Download directory is not writable.');
-                $this->nextErrors[] = $report;
+                $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('Download error.');
+                $this->nextErrors[] = $this->l('Unknown error during download.');
+
             }
         } else {
             $this->next = 'error';
-            $this->nextDesc = $this->l('Can\'t download.');
-            $this->nextErrors[] = sprintf($this->l('You need allow_url_fopen or cURL enabled for automatic download to work. You can also manually upload it in filepath %s.'), $this->getCoreFilePath());
+            $this->nextDesc = $this->nextQuickInfo[] = $this->l('Download directory is not writable.');
+            $this->nextErrors[] = $report;
         }
     }
 
