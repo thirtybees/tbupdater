@@ -89,4 +89,5 @@ jspm_packages
 .node_repl_history
 
 *tbupdater*.zip
-
+/cache/*
+!/**/index.php
