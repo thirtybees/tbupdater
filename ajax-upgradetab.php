@@ -29,6 +29,7 @@ use TbUpdaterModule\AjaxProcessor;
 if (function_exists('opcache_reset')) {
     opcache_reset();
 }
+umask(0000);
 
 if (function_exists('date_default_timezone_set')) {
     // date_default_timezone_get calls date_default_timezone_set, which can provide warning
@@ -39,11 +40,23 @@ if (function_exists('date_default_timezone_set')) {
 require_once __DIR__.'/../../config/settings.inc.php';
 require_once __DIR__.'/../../modules/tbupdater/classes/autoload.php';
 
+// Note that this script is always located in the admin dir + /autoupgrade/
+if (!defined('_PS_ROOT_DIR_')) {
+    // 3 directories up
+    define('_PS_ROOT_DIR_', realpath(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR));
+}
 if (!defined('_PS_MODULE_DIR_')) {
-    define('_PS_MODULE_DIR_', realpath(__DIR__.'/../../').'/modules/');
+    define('_PS_MODULE_DIR_', _PS_ROOT_DIR_.DIRECTORY_SEPARATOR.'modules'.DIRECTORY_SEPARATOR);
+}
+if (!defined('_PS_TOOL_DIR_')) {
+    define('_PS_TOOL_DIR_', _PS_ROOT_DIR_.DIRECTORY_SEPARATOR.'tools'.DIRECTORY_SEPARATOR);
+}
+define('AUTOUPGRADE_MODULE_DIR', _PS_MODULE_DIR_.'tbupdater'.DIRECTORY_SEPARATOR);
+define('_PS_ADMIN_DIR_', realpath(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR));
+if (!defined('_MYSQL_ENGINE_')) {
+    define('_MYSQL_ENGINE_', 'InnoDB');
 }
 
-define('AUTOUPGRADE_MODULE_DIR', _PS_MODULE_DIR_.'tbupdater/');
 require_once(AUTOUPGRADE_MODULE_DIR.'functions.php');
 
 $request = json_decode(file_get_contents('php://input'));
@@ -53,27 +66,13 @@ if (!isset($request->dir)) {
     die('no directory');
 }
 
-if (!defined('_PS_ROOT_DIR_')) {
-    define('_PS_ROOT_DIR_', realpath(__DIR__.'/../../'));
-}
-
 require_once __DIR__.'/../../config/defines.inc.php';
 require_once(AUTOUPGRADE_MODULE_DIR.'alias.php');
 
 $dir = Tools::safeOutput($request->dir);
 
-if (realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR.$dir !== realpath(realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR.$dir)) {
+if (_PS_ROOT_DIR_.DIRECTORY_SEPARATOR.'autoupgrade'.DIRECTORY_SEPARATOR !== realpath(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$dir) {
     die('wrong directory :'.(isset($_POST['dir']) ? $dir : ''));
-}
-
-define('_PS_ADMIN_DIR_', realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR.$dir);
-
-if (!defined('_MYSQL_ENGINE_')) {
-    define('_MYSQL_ENGINE_', 'MyISAM');
-}
-
-if (!defined('_PS_TOOL_DIR_')) {
-    define('_PS_TOOL_DIR_', _PS_ROOT_DIR_.'/tools/');
 }
 
 //require(_PS_ADMIN_DIR_.'/functions.php');
