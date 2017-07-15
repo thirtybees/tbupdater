@@ -60,6 +60,8 @@ class TbUpdater extends Module
     protected $upgrader;
     /** @var string|null $backupName Chosen backup name */
     protected $backupName = null;
+    /** @var mixed $lastAutoupgradeVersion */
+    protected $lastAutoupgradeVersion;
     /**
      * @var bool $manualMode
      *
@@ -87,10 +89,10 @@ class TbUpdater extends Module
 
         if (isset(Context::getContext()->employee->id) && Context::getContext()->employee->id && isset(Context::getContext()->link) && is_object(Context::getContext()->link)) {
             $this->baseUrl = $this->context->link->getAdminLink('AdminModules', true).'&'.http_build_query([
-                    'configure'   => $this->name,
-                    'tab_module'  => $this->tab,
-                    'module_name' => $this->name,
-                ]);
+                'configure'   => $this->name,
+                'tab_module'  => $this->tab,
+                'module_name' => $this->name,
+            ]);
         }
     }
 
@@ -192,6 +194,9 @@ class TbUpdater extends Module
         return $content.$this->display(__FILE__, 'views/templates/admin/configure.tpl');
     }
 
+    /**
+     * @return string
+     */
     public function getUpdateContent()
     {
         $configurationKeys = [
@@ -460,36 +465,6 @@ class TbUpdater extends Module
     }
 
     /**
-     * Install module from location
-     *
-     * @param string $location
-     *
-     * @return bool
-     *
-     * @since 1.0.0
-     */
-    protected function downloadModuleFromLocation($moduleName, $location)
-    {
-        $zipLocation = _PS_MODULE_DIR_.$moduleName.'.zip';
-        if (@!file_exists($zipLocation)) {
-            $guzzle = new \GuzzleHttp\Client([
-                'timeout' => 30,
-                'verify'  => _PS_TOOL_DIR_.'cacert.pem',
-            ]);
-            try {
-                $guzzle->get($location, ['sink' => $zipLocation]);
-            } catch (Exception $e) {
-                return false;
-            }
-        }
-        if (@file_exists($zipLocation)) {
-            return $this->extractModuleArchive($moduleName, $zipLocation, false);
-        }
-
-        return false;
-    }
-
-    /**
      * Get module info
      *
      * @param string $moduleName
@@ -506,261 +481,6 @@ class TbUpdater extends Module
         }
 
         return $cache[$moduleName];
-    }
-
-    /**
-     * Add information message
-     *
-     * @param string $message Message
-     *
-     * @since 1.0.0
-     */
-    protected function addInformation($message)
-    {
-        if (!Tools::isSubmit('configure')) {
-            $this->context->controller->informations[] = '<a href="'.$this->baseUrl.'">'.$this->displayName.': '.$message.'</a>';
-        } else {
-            $this->context->controller->informations[] = $message;
-        }
-    }
-
-    /**
-     * Add confirmation message
-     *
-     * @param string $message Message
-     *
-     * @since 1.0.0
-     */
-    protected function addConfirmation($message)
-    {
-        if (!Tools::isSubmit('configure')) {
-            $this->context->controller->confirmations[] = '<a href="'.$this->baseUrl.'">'.$this->displayName.': '.$message.'</a>';
-        } else {
-            $this->context->controller->confirmations[] = $message;
-        }
-    }
-
-    /**
-     * Add warning message
-     *
-     * @param string $message Message
-     *
-     * @since 1.0.0
-     */
-    protected function addWarning($message)
-    {
-        if (!Tools::isSubmit('configure')) {
-            $this->context->controller->warnings[] = '<a href="'.$this->baseUrl.'">'.$this->displayName.': '.$message.'</a>';
-        } else {
-            $this->context->controller->warnings[] = $message;
-        }
-    }
-
-    /**
-     * Add error message
-     *
-     * @param string $message Message
-     *
-     * @since 1.0.0
-     */
-    protected function addError($message)
-    {
-        if (!Tools::isSubmit('configure')) {
-            $this->context->controller->errors[] = '<a href="'.$this->baseUrl.'">'.$this->displayName.': '.$message.'</a>';
-        } else {
-            // Do not add error in this case
-            // It will break execution of AdminController
-            $this->context->controller->warnings[] = $message;
-        }
-    }
-
-    /**
-     * Validate GitHub repository
-     *
-     * @param string $repo Repository: username/repository
-     *
-     * @return bool Whether the repository is valid
-     *
-     * @since 1.0.0
-     */
-    protected function validateRepo($repo)
-    {
-        return count(explode('/', $repo)) === 2;
-    }
-
-    /**
-     * Extracts a module archive to the `modules` folder
-     *
-     * @param string $moduleName Module name
-     * @param string $file     File source location
-     * @param bool   $redirect Whether there should be a redirection to the BO module page after extracting
-     *
-     * @return bool
-     *
-     * @since 1.0.0
-     */
-    protected function extractModuleArchive($moduleName, $file, $redirect = true)
-    {
-        $zipFolders = [];
-        $tmpFolder = _PS_MODULE_DIR_.$moduleName.md5(time());
-
-        if (@!file_exists($file)) {
-            $this->addError($this->l('Module archive could not be downloaded'));
-
-            return false;
-        }
-
-        $success = false;
-        if (substr($file, -4) == '.zip') {
-            if (Tools::ZipExtract($file, $tmpFolder) && file_exists($tmpFolder.DIRECTORY_SEPARATOR.$moduleName)) {
-                if (file_exists(_PS_MODULE_DIR_.$moduleName)) {
-                    if (!ConfigurationTest::testDir(_PS_MODULE_DIR_.$moduleName, true, $report, true)) {
-                        $this->addError(sprintf($this->l('Could not update module `%s`: module directory not writable (`%s`).'), $moduleName, $report));
-                        $this->recursiveDeleteOnDisk($tmpFolder);
-                        @unlink(_PS_MODULE_DIR_.$moduleName.'.zip');
-
-                        return false;
-                    }
-                    $this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$moduleName);
-                }
-                if (@rename($tmpFolder.DIRECTORY_SEPARATOR.$moduleName, _PS_MODULE_DIR_.$moduleName)) {
-                    $success = true;
-                }
-            }
-        }
-
-        if (!$success) {
-            $this->addError($this->l('There was an error while extracting the module file (file may be corrupted).'));
-            // Force a new check
-            Configuration::updateGlobalValue(static::LAST_CHECK, 0);
-        } else {
-            //check if it's a real module
-            foreach ($zipFolders as $folder) {
-                if (!in_array($folder, ['.', '..', '.svn', '.git', '__MACOSX']) && !Module::getInstanceByName($folder)) {
-                    $this->addError(sprintf($this->l('The module %1$s that you uploaded is not a valid module.'), $folder));
-                    $this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$folder);
-                }
-            }
-        }
-
-        @unlink($file);
-        @unlink(_PS_MODULE_DIR_.$moduleName.'backup');
-        $this->recursiveDeleteOnDisk($tmpFolder);
-
-        if ($success) {
-            Configuration::updateGlobalValue(static::LAST_UPDATE, (int) time());
-            if ($redirect) {
-                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true).'&doNotAutoUpdate=1');
-            }
-        }
-
-        return $success;
-    }
-
-    /**
-     * Delete folder recursively
-     *
-     * @param string $dir Directory
-     *
-     * @since 1.0.0
-     */
-    protected function recursiveDeleteOnDisk($dir)
-    {
-        if (strpos(realpath($dir), realpath(_PS_MODULE_DIR_)) === false) {
-            return;
-        }
-
-        if (is_dir($dir)) {
-            $objects = scandir($dir);
-            foreach ($objects as $object) {
-                if ($object != '.' && $object != '..') {
-                    if (filetype($dir.'/'.$object) == 'dir') {
-                        $this->recursiveDeleteOnDisk($dir.'/'.$object);
-                    } else {
-                        @unlink($dir.'/'.$object);
-                    }
-                }
-            }
-            reset($objects);
-            rmdir($dir);
-        }
-    }
-
-    /**
-     * Calculate update versions
-     *
-     * @param Version $currentVersion
-     * @param array   $availableVersions
-     *
-     * @return array
-     *
-     * @since 1.0.0
-     */
-    protected function calculateUpdateVersions(Version $currentVersion, $availableVersions)
-    {
-        $patchRange = new Expression('~'.$currentVersion->getVersion());
-        $minorRange = new Expression('~'.$currentVersion->getMajor().'.'.$currentVersion->getMinor());
-        $majorRange = new Expression('*');
-
-        return [
-            'patch' => $patchRange->maxSatisfying($availableVersions)->getVersion(),
-            'minor' => $minorRange->maxSatisfying($availableVersions)->getVersion(),
-            'major' => $majorRange->maxSatisfying($availableVersions)->getVersion(),
-        ];
-    }
-
-    /**
-     * Find the highest version of a module
-     *
-     * @param string $tbVersion      Current TB version
-     * @param array  $moduleVersions Module version info
-     *
-     * @return bool|string Version number
-     *                     `false` if not found
-     *
-     * @since 1.0.0
-     */
-    protected function findHighestVersion($tbVersion, $moduleVersions)
-    {
-        if (!$tbVersion || !is_array($moduleVersions)) {
-            return false;
-        }
-
-        $tbVersion = new Version($tbVersion);
-
-        $versions = [];
-        foreach ($moduleVersions as $versionNumber => $versionInfo) {
-            if (!isset($versionInfo['compatibility']) || !$versionInfo['compatibility']) {
-                continue;
-            }
-
-            $range = new Expression($versionInfo['compatibility']);
-            if ($tbVersion->satisfies($range)) {
-                $versions[] = $versionNumber;
-            }
-        }
-
-        usort($versions, ['self', 'compareVersionReverse']);
-        if (!empty($versions)) {
-            return $versions[0];
-        }
-
-        return false;
-    }
-
-    /**
-     * Reverse compare version
-     *
-     * @param string $a
-     * @param string $b
-     *
-     * @return bool
-     *
-     * @since 1.0.0
-     */
-    protected function compareVersionReverse($a, $b)
-    {
-        return Version::lt($a, $b);
     }
 
     /**
@@ -935,19 +655,6 @@ class TbUpdater extends Module
     }
 
     /**
-     * _displayBlockUpgradeButton
-     * display the summary current version / target version + "Upgrade Now" button with a "more options" button
-     *
-     * @return string
-     *
-     * @since 1.0.0
-     */
-    private function displayBlockUpgradeButton()
-    {
-        return $this->displayAdminTemplate(__DIR__.'/views/templates/admin/blockupgradebutton.phtml');
-    }
-
-    /**
      * @param string $channel
      *
      * @return string
@@ -1016,7 +723,40 @@ class TbUpdater extends Module
         return $content;
     }
 
-    /** this returns fieldset containing the configuration points you need to use autoupgrade
+    /**
+     * @return void
+     *
+     * @since 1.0.0
+     */
+    public function ajaxProcessSetConfig()
+    {
+        if (!Tools::isSubmit('configKey') || !Tools::isSubmit('configValue') || !Tools::isSubmit('configType')) {
+            die(json_encode([
+                'success' => false,
+            ]));
+        }
+
+        $configKey = Tools::getValue('configKey');
+        $configType = Tools::getValue('configType');
+        $configValue = Tools::getValue('configValue');
+        if ($configType === 'bool') {
+            if ($configValue === 'false' || !$configValue) {
+                $configValue = false;
+            } else {
+                $configValue = true;
+            }
+        } elseif ($configType === 'select') {
+            $configValue = (int) $configValue;
+        }
+
+        UpgraderTools::setConfig($configKey, $configValue);
+
+        die(json_encode([
+            'success' => true,
+        ]));
+    }
+
+    /** this returns the fieldset containing the configuration points you need to use autoupgrade
      *
      * @return string
      *
@@ -1108,7 +848,7 @@ class TbUpdater extends Module
      *
      * @return void
      */
-    private function setFields()
+    protected function setFields()
     {
         $this->backupOptions[UpgraderTools::BACKUP] = [
             'title'        => $this->l('Back up my files and database'),
@@ -1161,7 +901,7 @@ class TbUpdater extends Module
      *
      * @since 1.0.0
      */
-    private function getJsInit()
+    protected function getJsInit()
     {
         return $this->displayAdminTemplate(__DIR__.'/views/templates/admin/mainjs.phtml');
     }
@@ -1181,35 +921,300 @@ class TbUpdater extends Module
     }
 
     /**
-     * @return void
+     * _displayBlockUpgradeButton
+     * display the summary current version / target version + "Upgrade Now" button with a "more options" button
+     *
+     * @return string
      *
      * @since 1.0.0
      */
-    public function ajaxProcessSetConfig()
+    protected function displayBlockUpgradeButton()
     {
-        if (!Tools::isSubmit('configKey') || !Tools::isSubmit('configValue') || !Tools::isSubmit('configType')) {
-            die(json_encode([
-                'success' => false,
-            ]));
-        }
+        return $this->displayAdminTemplate(__DIR__.'/views/templates/admin/blockupgradebutton.phtml');
+    }
 
-        $configKey = Tools::getValue('configKey');
-        $configType = Tools::getValue('configType');
-        $configValue = Tools::getValue('configValue');
-        if ($configType === 'bool') {
-            if ($configValue === 'false' || !$configValue) {
-                $configValue = false;
-            } else {
-                $configValue = true;
+    /**
+     * Install module from location
+     *
+     * @param string $moduleName
+     * @param string $location
+     *
+     * @return bool
+     * @since 1.0.0
+     */
+    protected function downloadModuleFromLocation($moduleName, $location)
+    {
+        $zipLocation = _PS_MODULE_DIR_.$moduleName.'.zip';
+        if (@!file_exists($zipLocation)) {
+            $guzzle = new \GuzzleHttp\Client([
+                'timeout' => 30,
+                'verify'  => _PS_TOOL_DIR_.'cacert.pem',
+            ]);
+            try {
+                $guzzle->get($location, ['sink' => $zipLocation]);
+            } catch (Exception $e) {
+                return false;
             }
-        } elseif ($configType === 'select') {
-            $configValue = (int) $configValue;
+        }
+        if (@file_exists($zipLocation)) {
+            return $this->extractModuleArchive($moduleName, $zipLocation, false);
         }
 
-        UpgraderTools::setConfig($configKey, $configValue);
+        return false;
+    }
 
-        die(json_encode([
-            'success' => true,
-        ]));
+    /**
+     * Reverse compare version
+     *
+     * @param string $a
+     * @param string $b
+     *
+     * @return bool
+     *
+     * @since 1.0.0
+     */
+    protected function compareVersionReverse($a, $b)
+    {
+        return Version::lt($a, $b);
+    }
+
+    /**
+     * Find the highest version of a module
+     *
+     * @param string $tbVersion      Current TB version
+     * @param array  $moduleVersions Module version info
+     *
+     * @return bool|string Version number
+     *                     `false` if not found
+     *
+     * @since 1.0.0
+     */
+    protected function findHighestVersion($tbVersion, $moduleVersions)
+    {
+        if (!$tbVersion || !is_array($moduleVersions)) {
+            return false;
+        }
+
+        $tbVersion = new Version($tbVersion);
+
+        $versions = [];
+        foreach ($moduleVersions as $versionNumber => $versionInfo) {
+            if (!isset($versionInfo['compatibility']) || !$versionInfo['compatibility']) {
+                continue;
+            }
+
+            $range = new Expression($versionInfo['compatibility']);
+            if ($tbVersion->satisfies($range)) {
+                $versions[] = $versionNumber;
+            }
+        }
+
+        usort($versions, ['self', 'compareVersionReverse']);
+        if (!empty($versions)) {
+            return $versions[0];
+        }
+
+        return false;
+    }
+
+    /**
+     * Calculate update versions
+     *
+     * @param Version $currentVersion
+     * @param array   $availableVersions
+     *
+     * @return array
+     *
+     * @since 1.0.0
+     */
+    protected function calculateUpdateVersions(Version $currentVersion, $availableVersions)
+    {
+        $patchRange = new Expression('~'.$currentVersion->getVersion());
+        $minorRange = new Expression('~'.$currentVersion->getMajor().'.'.$currentVersion->getMinor());
+        $majorRange = new Expression('*');
+
+        return [
+            'patch' => $patchRange->maxSatisfying($availableVersions)->getVersion(),
+            'minor' => $minorRange->maxSatisfying($availableVersions)->getVersion(),
+            'major' => $majorRange->maxSatisfying($availableVersions)->getVersion(),
+        ];
+    }
+
+    /**
+     * Delete folder recursively
+     *
+     * @param string $dir Directory
+     *
+     * @since 1.0.0
+     */
+    protected function recursiveDeleteOnDisk($dir)
+    {
+        if (strpos(realpath($dir), realpath(_PS_MODULE_DIR_)) === false) {
+            return;
+        }
+
+        if (is_dir($dir)) {
+            $objects = scandir($dir);
+            foreach ($objects as $object) {
+                if ($object != '.' && $object != '..') {
+                    if (filetype($dir.'/'.$object) == 'dir') {
+                        $this->recursiveDeleteOnDisk($dir.'/'.$object);
+                    } else {
+                        @unlink($dir.'/'.$object);
+                    }
+                }
+            }
+            reset($objects);
+            rmdir($dir);
+        }
+    }
+
+    /**
+     * Extracts a module archive to the `modules` folder
+     *
+     * @param string $moduleName Module name
+     * @param string $file     File source location
+     * @param bool   $redirect Whether there should be a redirection to the BO module page after extracting
+     *
+     * @return bool
+     *
+     * @since 1.0.0
+     */
+    protected function extractModuleArchive($moduleName, $file, $redirect = true)
+    {
+        $zipFolders = [];
+        $tmpFolder = _PS_MODULE_DIR_.$moduleName.md5(time());
+
+        if (@!file_exists($file)) {
+            $this->addError($this->l('Module archive could not be downloaded'));
+
+            return false;
+        }
+
+        $success = false;
+        if (substr($file, -4) == '.zip') {
+            if (Tools::ZipExtract($file, $tmpFolder) && file_exists($tmpFolder.DIRECTORY_SEPARATOR.$moduleName)) {
+                if (file_exists(_PS_MODULE_DIR_.$moduleName)) {
+                    if (!ConfigurationTest::testDir(_PS_MODULE_DIR_.$moduleName, true, $report, true)) {
+                        $this->addError(sprintf($this->l('Could not update module `%s`: module directory not writable (`%s`).'), $moduleName, $report));
+                        $this->recursiveDeleteOnDisk($tmpFolder);
+                        @unlink(_PS_MODULE_DIR_.$moduleName.'.zip');
+
+                        return false;
+                    }
+                    $this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$moduleName);
+                }
+                if (@rename($tmpFolder.DIRECTORY_SEPARATOR.$moduleName, _PS_MODULE_DIR_.$moduleName)) {
+                    $success = true;
+                }
+            }
+        }
+
+        if (!$success) {
+            $this->addError($this->l('There was an error while extracting the module file (file may be corrupted).'));
+            // Force a new check
+            Configuration::updateGlobalValue(static::LAST_CHECK, 0);
+        } else {
+            //check if it's a real module
+            foreach ($zipFolders as $folder) {
+                if (!in_array($folder, ['.', '..', '.svn', '.git', '__MACOSX']) && !Module::getInstanceByName($folder)) {
+                    $this->addError(sprintf($this->l('The module %1$s that you uploaded is not a valid module.'), $folder));
+                    $this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$folder);
+                }
+            }
+        }
+
+        @unlink($file);
+        @unlink(_PS_MODULE_DIR_.$moduleName.'backup');
+        $this->recursiveDeleteOnDisk($tmpFolder);
+
+        if ($success) {
+            Configuration::updateGlobalValue(static::LAST_UPDATE, (int) time());
+            if ($redirect) {
+                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true).'&doNotAutoUpdate=1');
+            }
+        }
+
+        return $success;
+    }
+
+    /**
+     * Validate GitHub repository
+     *
+     * @param string $repo Repository: username/repository
+     *
+     * @return bool Whether the repository is valid
+     *
+     * @since 1.0.0
+     */
+    protected function validateRepo($repo)
+    {
+        return count(explode('/', $repo)) === 2;
+    }
+
+    /**
+     * Add error message
+     *
+     * @param string $message Message
+     *
+     * @since 1.0.0
+     */
+    protected function addError($message)
+    {
+        if (!Tools::isSubmit('configure')) {
+            $this->context->controller->errors[] = '<a href="'.$this->baseUrl.'">'.$this->displayName.': '.$message.'</a>';
+        } else {
+            // Do not add error in this case
+            // It will break execution of AdminController
+            $this->context->controller->warnings[] = $message;
+        }
+    }
+
+    /**
+     * Add warning message
+     *
+     * @param string $message Message
+     *
+     * @since 1.0.0
+     */
+    protected function addWarning($message)
+    {
+        if (!Tools::isSubmit('configure')) {
+            $this->context->controller->warnings[] = '<a href="'.$this->baseUrl.'">'.$this->displayName.': '.$message.'</a>';
+        } else {
+            $this->context->controller->warnings[] = $message;
+        }
+    }
+
+    /**
+     * Add confirmation message
+     *
+     * @param string $message Message
+     *
+     * @since 1.0.0
+     */
+    protected function addConfirmation($message)
+    {
+        if (!Tools::isSubmit('configure')) {
+            $this->context->controller->confirmations[] = '<a href="'.$this->baseUrl.'">'.$this->displayName.': '.$message.'</a>';
+        } else {
+            $this->context->controller->confirmations[] = $message;
+        }
+    }
+
+    /**
+     * Add information message
+     *
+     * @param string $message Message
+     *
+     * @since 1.0.0
+     */
+    protected function addInformation($message)
+    {
+        if (!Tools::isSubmit('configure')) {
+            $this->context->controller->informations[] = '<a href="'.$this->baseUrl.'">'.$this->displayName.': '.$message.'</a>';
+        } else {
+            $this->context->controller->informations[] = $message;
+        }
     }
 }

@@ -2,8 +2,8 @@
 /**
  * 2007-2016 PrestaShop
  *
- * Thirty Bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
- * Copyright (C) 2017 Thirty Bees
+ * thirty bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
+ * Copyright (C) 2017 thirty bees
  *
  * NOTICE OF LICENSE
  *
@@ -15,9 +15,9 @@
  * obtain it through the world-wide-web, please send an email
  * to license@thirtybees.com so we can send you a copy immediately.
  *
- * @author    Thirty Bees <modules@thirtybees.com>
+ * @author    thirty bees <modules@thirtybees.com>
  * @author    PrestaShop SA <contact@prestashop.com>
- * @copyright 2017 Thirty Bees
+ * @copyright 2017 thirty bees
  * @copyright 2007-2016 PrestaShop SA
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  PrestaShop is an internationally registered trademark & property of PrestaShop SA
@@ -42,8 +42,8 @@ require_once __DIR__.'/../../modules/tbupdater/classes/autoload.php';
 
 // Note that this script is always located in the admin dir + /autoupgrade/
 if (!defined('_PS_ROOT_DIR_')) {
-    // 3 directories up
-    define('_PS_ROOT_DIR_', realpath(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR));
+    // 2 directories up
+    define('_PS_ROOT_DIR_', realpath(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR));
 }
 if (!defined('_PS_MODULE_DIR_')) {
     define('_PS_MODULE_DIR_', _PS_ROOT_DIR_.DIRECTORY_SEPARATOR.'modules'.DIRECTORY_SEPARATOR);
@@ -52,7 +52,7 @@ if (!defined('_PS_TOOL_DIR_')) {
     define('_PS_TOOL_DIR_', _PS_ROOT_DIR_.DIRECTORY_SEPARATOR.'tools'.DIRECTORY_SEPARATOR);
 }
 define('AUTOUPGRADE_MODULE_DIR', _PS_MODULE_DIR_.'tbupdater'.DIRECTORY_SEPARATOR);
-define('_PS_ADMIN_DIR_', realpath(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR));
+define('_PS_ADMIN_DIR_', realpath(__DIR__.DIRECTORY_SEPARATOR.'..'));
 if (!defined('_MYSQL_ENGINE_')) {
     define('_MYSQL_ENGINE_', 'InnoDB');
 }
@@ -71,18 +71,16 @@ require_once(AUTOUPGRADE_MODULE_DIR.'alias.php');
 
 $dir = Tools::safeOutput($request->dir);
 
-if (_PS_ROOT_DIR_.DIRECTORY_SEPARATOR.'autoupgrade'.DIRECTORY_SEPARATOR !== realpath(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$dir) {
-    die('wrong directory :'.(isset($_POST['dir']) ? $dir : ''));
+if (_PS_ADMIN_DIR_ !== _PS_ROOT_DIR_.DIRECTORY_SEPARATOR.$dir) {
+    die("wrong directory: $dir");
 }
 
-//require(_PS_ADMIN_DIR_.'/functions.php');
 include(AUTOUPGRADE_MODULE_DIR.'init.php');
 
 $ajaxUpgrader = AjaxProcessor::getInstance();
 
 if (is_object($ajaxUpgrader) && $ajaxUpgrader->verifyToken()) {
     $ajaxUpgrader->optionDisplayErrors();
-    $ajaxUpgrader->ajax = 1;
 
     // the differences with index.php is here
     $ajaxUpgrader->ajaxPreProcess();

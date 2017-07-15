@@ -2,8 +2,8 @@
 /**
  * 2007-2016 PrestaShop
  *
- * Thirty Bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
- * Copyright (C) 2017 Thirty Bees
+ * thirty bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
+ * Copyright (C) 2017 thirty bees
  *
  * NOTICE OF LICENSE
  *
@@ -21,9 +21,9 @@
  * versions in the future. If you wish to customize PrestaShop for your
  * needs please refer to https://www.thirtybees.com for more information.
  *
- * @author    Thirty Bees <contact@thirtybees.com>
+ * @author    thirty bees <contact@thirtybees.com>
  * @author    PrestaShop SA <contact@prestashop.com>
- * @copyright 2017 Thirty Bees
+ * @copyright 2017 thirty bees
  * @copyright 2007-2016 PrestaShop SA
  * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  *  PrestaShop is an internationally registered trademark & property of PrestaShop SA
@@ -80,7 +80,7 @@ class Translate
             }
         }
 
-        $string = preg_replace("/\\\*'/", "\'", $string);
+        $string = preg_replace("/\\\*'/", "'", $string);
         $key = md5($string);
         if (isset($_LANGADM[$class.$key])) {
             $str = $_LANGADM[$class.$key];
@@ -143,7 +143,7 @@ class Translate
                 }
             }
         }
-        $string = preg_replace("/\\\*'/", "\'", $string);
+        $string = preg_replace("/\\\*'/", "'", $string);
         $key = md5($string);
 
         $cacheKey = $name.'|'.$string.'|'.$source.'|'.(int) $js;
@@ -244,7 +244,7 @@ class Translate
      */
     public static function getGenericAdminTranslation($string, $key = null, &$langArray)
     {
-        $string = preg_replace("/\\\*'/", "\'", $string);
+        $string = preg_replace("/\\\*'/", "'", $string);
         if (is_null($key)) {
             $key = md5($string);
         }
@@ -298,7 +298,7 @@ class Translate
             return str_replace('"', '&quot;', $string);
         }
 
-        $string = preg_replace("/\\\*'/", "\'", $string);
+        $string = preg_replace("/\\\*'/", "'", $string);
         $key = md5($string);
 
         $str = (array_key_exists('PDF'.$key, $_LANGPDF) ? $_LANGPDF['PDF'.$key] : $string);
