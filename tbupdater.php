@@ -78,7 +78,7 @@ class TbUpdater extends Module
     {
         $this->name = 'tbupdater';
         $this->tab = 'administration';
-        $this->version = '1.2.0';
+        $this->version = '1.2.1';
         $this->author = 'thirty bees';
         $this->bootstrap = true;
         $this->need_instance = 1;
