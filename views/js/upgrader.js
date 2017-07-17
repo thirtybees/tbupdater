@@ -48,6 +48,10 @@
     }
 
     function addError(arrError) {
+      if (!arrError || !$.isArray(arrError)) {
+        return;
+      }
+
       var $errorDuringUpgrade = $('#errorDuringUpgrade');
       var $infoError = $('#infoError');
       var i;
@@ -63,6 +67,10 @@
     }
 
     function addQuickInfo(arrQuickInfo) {
+      if (!arrQuickInfo || !$.isArray(arrQuickInfo)) {
+        return;
+      }
+
       var $quickInfo = $('#quickInfo');
       var i;
 

@@ -76,9 +76,16 @@ class Upgrader
      * @var string $extraLink
      */
     public $extraLink;
+    /** @var string $md5Core */
     public $md5Core;
+    /** @var string $md5Extra */
     public $md5Extra;
-
+    /**
+     * Required versions before updating to the target version
+     *
+     * @var array $requires
+     */
+    public $requires = [];
     /**
      * Link to file actions link
      *
@@ -108,7 +115,6 @@ class Upgrader
      * @var array $versionInfo
      */
     public $versionInfo = [];
-
     /** @var Upgrader $instance */
     protected static $instance;
 
@@ -221,6 +227,9 @@ class Upgrader
         $this->md5Core = $versionsInfo['md5core'];
         $this->md5Extra = $versionsInfo['md5extra'];
         $this->fileActionsLink = $versionsInfo['fileActions'];
+        if (isset($versionsInfo['requires'])) {
+            $this->requires = $versionsInfo['requires'];
+        }
 
         return true;
     }
@@ -245,6 +254,11 @@ class Upgrader
 
         $coreDestPath = realpath($dest).DIRECTORY_SEPARATOR."thirtybees-v{$this->version}.zip";
         $extraDestPath = realpath($dest).DIRECTORY_SEPARATOR."thirtybees-extra-v{$this->version}.zip";
+        if (!empty($this->requires)) {
+            foreach ($this->requires as $dependency) {
+                Tools::copy("https://api.thirtybees.com/updates/packs/thirtybees-file-actions-v{$dependency}.json", realpath($dest).DIRECTORY_SEPARATOR."thirtybees-file-actions-v{$dependency}.json");
+            }
+        }
         $fileActionsPath = realpath($dest).DIRECTORY_SEPARATOR."thirtybees-file-actions-v{$this->version}.json";
 
         Tools::copy($this->coreLink, $coreDestPath);

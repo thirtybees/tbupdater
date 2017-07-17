@@ -845,11 +845,26 @@ class AjaxProcessor
         if (empty($fileActions)) {
             // list saved in $this->toUpgradeFileList
             // get files differences (previously generated)
-            $filepathListDiff = _PS_ADMIN_DIR_."/autoupgrade/download/thirtybees-file-actions-v{$this->upgrader->version}.json";
-            if (file_exists($filepathListDiff)) {
-                $unsortedListFilesToUpgrade = json_decode(file_get_contents($filepathListDiff), true);
-                $deleteFilesForUpgrade = [];
-                $addFilesForUpgrade = [];
+
+            $filepathListDiff = [_PS_ADMIN_DIR_."/autoupgrade/download/thirtybees-file-actions-v{$this->upgrader->version}.json"];
+            foreach (Upgrader::getInstance()->requires as $require) {
+                $filepathListDiff[] = _PS_ADMIN_DIR_."/autoupgrade/download/thirtybees-file-actions-v{$require}.json";
+            }
+
+            $deleteFilesForUpgrade = [];
+            $addFilesForUpgrade = [];
+            foreach ($filepathListDiff as $diffFile) {
+                if (!file_exists($diffFile)) {
+                    $this->nextErrors[] = $this->l('One or more lists of files to upgrade are missing');
+                    $this->nextDesc = $this->l('One or more lists of files to upgrade are missing');
+                    $this->nextQuickInfo = $this->l('One or more lists of files to upgrade are missing');
+                    $this->next = 'error';
+
+                    return false;
+                }
+
+                $unsortedListFilesToUpgrade = json_decode(file_get_contents($diffFile), true);
+
                 foreach ($unsortedListFilesToUpgrade as $path => $fileAction) {
                     // Make sure the delete actions happen before the adds
                     // Leave the md5 sum for now
@@ -858,6 +873,13 @@ class AjaxProcessor
                             'path'   => $path,
                             'action' => $fileAction['action'],
                         ];
+                        foreach ($addFilesForUpgrade as $index => $file) {
+                            if ($file['path'] === $path) {
+                                unset($addFilesForUpgrade[$index]);
+
+                                break;
+                            }
+                        }
                     } else {
                         if (!($fileAction['action'] === 'add' && !$upgradeTheme && substr($path, 0, 31) === '/themes/community-theme-default')) {
                             $addFilesForUpgrade[] = [
@@ -865,20 +887,22 @@ class AjaxProcessor
                                 'action' => $fileAction['action'],
                             ];
                         }
+                        foreach ($deleteFilesForUpgrade as $index => $file) {
+                            if ($file['path'] === $path) {
+                                unset($addFilesForUpgrade[$index]);
+
+                                break;
+                            }
+                        }
                     }
                 }
-                // Save in an array in `fileActions`
-                // Delete actions at back of array, we will process those first
-                FileActions::addFileActions($addFilesForUpgrade + $deleteFilesForUpgrade);
-                $fileActions = FileActions::getFileActions(UpgraderTools::$loopUpgradeFiles);
-            } else {
-                $this->nextErrors[] = $this->l('Couldn\'t find a list of files to upgrade');
-                $this->nextDesc = $this->l('Couldn\'t find a list of files to upgrade');
-                $this->nextQuickInfo = $this->l('Couldn\'t find a list of files to upgrade');
-                $this->next = 'error';
-
-                return false;
             }
+
+            // Save in an array in `fileActions`
+            // Delete actions at back of array, we will process those first
+            FileActions::addFileActions($addFilesForUpgrade + $deleteFilesForUpgrade);
+            $fileActions = FileActions::getFileActions(UpgraderTools::$loopUpgradeFiles);
+
 
             if (empty($fileActions)) {
                 $this->nextQuickInfo[] = $this->l('[ERROR] Unable to find files to upgrade.');
@@ -896,6 +920,7 @@ class AjaxProcessor
 
             return true;
         }
+
         // Later we can choose between _PS_ROOT_DIR_ or _PS_TEST_DIR_
         $this->next = 'upgradeFiles';
         if (!is_array($fileActions)) {
@@ -1018,6 +1043,8 @@ class AjaxProcessor
         } elseif (is_dir($this->latestRootDir)) {
             $this->nextQuickInfo[] = '<strong>'.sprintf($this->l('Please remove %s by FTP'), $this->latestRootDir).'</strong>';
         }
+
+        $this->runSql('clean');
     }
 
     /**
