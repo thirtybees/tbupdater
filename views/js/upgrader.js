@@ -228,7 +228,7 @@
 
           // init new name to backup
           rollbackParams.restoreName = $restoreNameSelect.val();
-          window.prepareNextButton('#rollback', rollbackParams);
+          prepareNextButton('#rollback', rollbackParams);
           // Note : theses buttons have been removed.
           // they will be available in a future release (when DEV_MODE and MANUAL_MODE enabled)
           // prepareNextButton('#restoreDb', rollbackParams);

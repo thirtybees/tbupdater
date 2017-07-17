@@ -160,6 +160,9 @@ class AjaxProcessor
         $this->action = (isset($request['action']) ? $request['action'] : null);
         $this->currentParams = (isset($request['params']) ? $request['params'] : null);
 
+        if (isset($this->currentParams['channel'])) {
+            UpgraderTools::setConfig('channel', $this->currentParams['channel']);
+        }
         $this->tools = UpgraderTools::getInstance();
         $this->upgrader = Upgrader::getInstance();
         $this->installVersion = $this->upgrader->version;
@@ -846,14 +849,15 @@ class AjaxProcessor
             // list saved in $this->toUpgradeFileList
             // get files differences (previously generated)
 
-            $filepathListDiff = [_PS_ADMIN_DIR_."/autoupgrade/download/thirtybees-file-actions-v{$this->upgrader->version}.json"];
+            $filepathListDiff = [$this->upgrader->version => _PS_ADMIN_DIR_."/autoupgrade/download/thirtybees-file-actions-v{$this->upgrader->version}.json"];
             foreach (Upgrader::getInstance()->requires as $require) {
-                $filepathListDiff[] = _PS_ADMIN_DIR_."/autoupgrade/download/thirtybees-file-actions-v{$require}.json";
+                $filepathListDiff[$require] = _PS_ADMIN_DIR_."/autoupgrade/download/thirtybees-file-actions-v{$require}.json";
             }
+            uksort($filepathListDiff, ['TbUpdaterModule\\SemVer\\Version', 'gt']);
 
             $deleteFilesForUpgrade = [];
             $addFilesForUpgrade = [];
-            foreach ($filepathListDiff as $diffFile) {
+            foreach ($filepathListDiff as $version => $diffFile) {
                 if (!file_exists($diffFile)) {
                     $this->nextErrors[] = $this->l('One or more lists of files to upgrade are missing');
                     $this->nextDesc = $this->l('One or more lists of files to upgrade are missing');
@@ -1394,6 +1398,7 @@ class AjaxProcessor
         $this->next = '';
 
         $channel = $this->currentParams['channel'];
+        UpgraderTools::setConfig('channel', $channel);
         $upgrader = Upgrader::getInstance();
         $upgrader->selectedChannel = $channel;
         $upgrader->checkTbVersion(true);

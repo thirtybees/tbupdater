@@ -284,7 +284,7 @@ class Upgrader
 
         // Check if update module needs to be updated
         // FIXME: get module version from database and no longer hard-code
-        $semver = new Version('1.1.0');
+        $semver = new Version('1.2.0');
 
         $checkVersions = [];
         foreach (['stable', 'rc', 'beta', 'alpha'] as $type) {
