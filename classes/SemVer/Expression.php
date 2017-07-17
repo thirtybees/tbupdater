@@ -2,7 +2,8 @@
 
 namespace TbUpdaterModule\SemVer;
 
-class Expression {
+class Expression
+{
     static protected $global_single_version = '(([0-9]+)(\\.([0-9]+)(\\.([0-9]+)(-([0-9]+))?(-?([a-zA-Z-+][a-zA-Z0-9\\.\\-:]*)?)?)?)?)';
     static protected $global_single_xrange = '(([0-9]+|[xX*])(\\.([0-9]+|[xX*])(\\.([0-9]+|[xX*])(-([0-9]+))?(-?([a-zA-Z-+][a-zA-Z0-9\\.\\-:]*)?)?)?)?)';
     static protected $global_single_comparator = '([<>]=?)?\\s*';
@@ -17,22 +18,22 @@ class Expression {
      * @param string $versions
      */
     function __construct($versions) {
-        $versions = preg_replace(sprintf(self::$dirty_regexp_mask, self::$global_single_comparator . '(\\s+-\\s+)?' . self::$global_single_xrange), '$1$2$3', $versions); //Paste comparator and version together
+        $versions = preg_replace(sprintf(static::$dirty_regexp_mask, static::$global_single_comparator . '(\\s+-\\s+)?' . static::$global_single_xrange), '$1$2$3', $versions); //Paste comparator and version together
         $versions = preg_replace('/\\s+/', ' ', $versions); //Condense multiple spaces to one
         $versions = str_replace(array('*', 'X'), 'x', $versions); // All the same wildcards, plz
         if (strstr($versions, ' - '))
-            $versions = self::rangesToComparators($versions); //Replace all ranges with comparators
+            $versions = static::rangesToComparators($versions); //Replace all ranges with comparators
         if (strstr($versions, '~'))
-            $versions = self::spermiesToComparators($versions); //Replace all spermies with comparators
+            $versions = static::spermiesToComparators($versions); //Replace all spermies with comparators
         if(strstr($versions, 'x') && (strstr($versions, '<')|| strstr($versions, '>')))
-            $versions = self::compAndxRangesToComparators($versions);
+            $versions = static::compAndxRangesToComparators($versions);
         if (strstr($versions, 'x'))
-            $versions = self::xRangesToComparators($versions); //Replace all x-ranges with comparators
+            $versions = static::xRangesToComparators($versions); //Replace all x-ranges with comparators
         $or = explode('||', $versions);
         foreach ($or as &$orchunk) {
             $and = explode(' ', trim($orchunk));
             foreach ($and as $order => &$achunk) {
-                $achunk = self::standardizeSingleComparator($achunk);
+                $achunk = static::standardizeSingleComparator($achunk);
                 if (strstr($achunk, ' ')) {
                     $pieces = explode(' ', $achunk);
                     unset($and[$order]);
@@ -53,7 +54,7 @@ class Expression {
      */
     function satisfiedBy(Version $version) {
         $version1 = $version->getVersion();
-        $expression = sprintf(self::$regexp_mask, self::$global_single_comparator . self::$global_single_version);
+        $expression = sprintf(static::$regexp_mask, static::$global_single_comparator . static::$global_single_version);
         $ok = false;
         foreach ($this->chunks as $orblocks) { //Or loop
             foreach ($orblocks as $ablocks) { //And loop
@@ -153,21 +154,21 @@ class Expression {
      */
     static function standardize($version, $padZero = false) {
         $matches = array();
-        $expression = sprintf(self::$dirty_regexp_mask, self::$global_single_version);
+        $expression = sprintf(static::$dirty_regexp_mask, static::$global_single_version);
         if (!preg_match($expression, $version, $matches))
             throw new SemVerException('Invalid version string given', $version);
         if ($padZero) { //If there is a comparator drop undefined parts
-            self::matchesToVersionParts($matches, $major, $minor, $patch, $build, $prtag, null);
+            static::matchesToVersionParts($matches, $major, $minor, $patch, $build, $prtag, null);
             if($build === '') $build = null;
             if($prtag === '') $prtag = null;
-            return self::constructVersionFromParts(false, $major, $minor, $patch, $build, $prtag);
+            return static::constructVersionFromParts(false, $major, $minor, $patch, $build, $prtag);
         }
         else { //If it is just a number, convert to a range
-            self::matchesToVersionParts($matches, $major, $minor, $patch, $build, $prtag, 'x');
+            static::matchesToVersionParts($matches, $major, $minor, $patch, $build, $prtag, 'x');
             if($build === '') $build = null;
             if($prtag === '') $prtag = null;
-            $version = self::constructVersionFromParts(false, $major, $minor, $patch, $build, $prtag);
-            return self::xRangesToComparators($version);
+            $version = static::constructVersionFromParts(false, $major, $minor, $patch, $build, $prtag);
+            return static::xRangesToComparators($version);
         }
     }
     
@@ -180,7 +181,7 @@ class Expression {
      * @return string
      */
     static function standarize($version, $padZero = false) {
-        return self::standardize($version, $padZero);
+        return static::standardize($version, $padZero);
     }
 
     /**
@@ -190,7 +191,7 @@ class Expression {
      * @return string
      */
     static protected function standardizeSingleComparator($version) {
-        $expression = sprintf(self::$regexp_mask, self::$global_single_comparator . self::$global_single_version);
+        $expression = sprintf(static::$regexp_mask, static::$global_single_comparator . static::$global_single_version);
         $matches = array();
         if (!preg_match($expression, $version, $matches))
             throw new SemVerException('Invalid version string given', $version);
@@ -199,7 +200,7 @@ class Expression {
         $hasComparators = true;
         if ($comparators === '')
             $hasComparators = false;
-        $version = self::standardize($version, $hasComparators);
+        $version = static::standardize($version, $hasComparators);
         return $comparators . $version;
     }
 
@@ -209,14 +210,14 @@ class Expression {
      * @return string
      */
     static protected function standardizeMultipleComparators($versions) {
-        $versions = preg_replace('/' . self::$global_single_comparator . self::$global_single_xrange . '/', '$1$2', $versions); //Paste comparator and version together
+        $versions = preg_replace('/' . static::$global_single_comparator . static::$global_single_xrange . '/', '$1$2', $versions); //Paste comparator and version together
         $versions = preg_replace('/\\s+/', ' ', $versions); //Condense multiple spaces to one
         $or = explode('||', $versions);
         foreach ($or as &$orchunk) {
             $orchunk = trim($orchunk); //Remove spaces
             $and = explode(' ', $orchunk);
             foreach ($and as &$achunk) {
-                $achunk = self::standardizeSingleComparator($achunk);
+                $achunk = static::standardizeSingleComparator($achunk);
             }
             $orchunk = implode(' ', $and);
         }
@@ -231,12 +232,12 @@ class Expression {
      * @return string
      */
     static protected function rangesToComparators($range) {
-        $range_expression = sprintf(self::$range_mask, self::$global_single_version);
-        $expression = sprintf(self::$regexp_mask, $range_expression);
+        $range_expression = sprintf(static::$range_mask, static::$global_single_version);
+        $expression = sprintf(static::$regexp_mask, $range_expression);
         if (!preg_match($expression, $range, $matches))
             throw new SemVerException('Invalid range given', $range);
         $versions = preg_replace($expression, '>=$1 <=$11', $range);
-        $versions = self::standardizeMultipleComparators($versions);
+        $versions = static::standardizeMultipleComparators($versions);
         return $versions;
     }
 
@@ -246,8 +247,8 @@ class Expression {
      * @return string
      */
     static protected function xRangesToComparators($ranges) {
-        $expression = sprintf(self::$regexp_mask, self::$global_single_xrange);
-        return preg_replace_callback($expression, array('Expression', 'xRangesToComparatorsCallback'), $ranges);
+        $expression = sprintf(static::$regexp_mask, static::$global_single_xrange);
+        return preg_replace_callback($expression, array('static', 'xRangesToComparatorsCallback'), $ranges);
     }
 
     /**
@@ -257,7 +258,7 @@ class Expression {
      * @return string
      */
     static private function xRangesToComparatorsCallback($matches) {
-        self::matchesToVersionParts($matches, $major, $minor, $patch, $build, $prtag, 'x');
+        static::matchesToVersionParts($matches, $major, $minor, $patch, $build, $prtag, 'x');
         if ($build !== '')
             $build = '-' . $build;
         if ($major === 'x')
@@ -275,8 +276,8 @@ class Expression {
      * @return string
      */
     static protected function spermiesToComparators($spermies) {
-        $expression = sprintf(self::$regexp_mask, self::$global_single_spermy . self::$global_single_xrange);
-        return preg_replace_callback($expression, array('Expression', 'spermiesToComparatorsCallback'), $spermies);
+        $expression = sprintf(static::$regexp_mask, static::$global_single_spermy . static::$global_single_xrange);
+        return preg_replace_callback($expression, array('static', 'spermiesToComparatorsCallback'), $spermies);
     }
 
     /**
@@ -286,7 +287,7 @@ class Expression {
      * @return string
      */
     static private function spermiesToComparatorsCallback($matches) {
-        self::matchesToVersionParts($matches, $major, $minor, $patch, $build, $prtag, 'x', 3);
+        static::matchesToVersionParts($matches, $major, $minor, $patch, $build, $prtag, 'x', 3);
         if ($build !== '')
             $build = '-' . $build;
         if ($major === 'x')
@@ -305,8 +306,8 @@ class Expression {
      * @return string
      */
     static private function compAndxRangesToComparators($versions) {
-        $regex = sprintf(self::$regexp_mask, self::$global_single_comparator.self::$global_single_xrange);
-        return preg_replace_callback($regex, array('Expression', 'compAndxRangesToComparatorsCallback'), $versions);
+        $regex = sprintf(static::$regexp_mask, static::$global_single_comparator.static::$global_single_xrange);
+        return preg_replace_callback($regex, array('static', 'compAndxRangesToComparatorsCallback'), $versions);
     }
 
     /**
@@ -318,7 +319,7 @@ class Expression {
      */
     static private function compAndxRangesToComparatorsCallback($matches) {
         $comparators = $matches[1];
-        self::matchesToVersionParts($matches, $major, $minor, $patch, $build, $prtag, 'x', 3);
+        static::matchesToVersionParts($matches, $major, $minor, $patch, $build, $prtag, 'x', 3);
         if($comparators[0] === '<') {
             if($major === 'x')
                 return $comparators.'0';
@@ -326,10 +327,10 @@ class Expression {
                 return $comparators.$major.'.0';
             if($patch === 'x')
                 return $comparators.$major.'.'.$minor.'.0';
-            return $comparators.self::constructVersionFromParts(false, $major, $minor, $patch, $build, $prtag);
+            return $comparators.static::constructVersionFromParts(false, $major, $minor, $patch, $build, $prtag);
         }
         elseif($comparators[0] === '>') {
-            return $comparators.self::constructVersionFromParts(false, ($major==='x'?0:$major), ($minor==='x'?0:$minor), ($patch==='x'?0:$patch), $build, $prtag);
+            return $comparators.static::constructVersionFromParts(false, ($major==='x'?0:$major), ($minor==='x'?0:$minor), ($patch==='x'?0:$patch), $build, $prtag);
         }
     }
 
