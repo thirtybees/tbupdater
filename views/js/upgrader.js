@@ -58,7 +58,6 @@
         for (i = 0; i < arrError.length; i += 1) {
           $infoError.append(arrError[i] + '<br />');
         }
-        // Note : jquery 1.6 make uses of prop() instead of attr()
         $infoError.attr({ scrollTop: $infoError.attr('scrollHeight') }, 1);
       }
     }
@@ -72,7 +71,6 @@
         for (i = 0; i < arrQuickInfo.length; i += 1) {
           $quickInfo.append(arrQuickInfo[i] + '<br />');
         }
-        // Note : jquery 1.6 make uses of prop() instead of attr()
         $quickInfo.attr({ scrollTop: $quickInfo.attr('scrollHeight') }, 1);
       }
     }
@@ -222,7 +220,7 @@
 
           // init new name to backup
           rollbackParams.restoreName = $restoreNameSelect.val();
-          prepareNextButton('#rollback', rollbackParams);
+          window.prepareNextButton('#rollback', rollbackParams);
           // Note : theses buttons have been removed.
           // they will be available in a future release (when DEV_MODE and MANUAL_MODE enabled)
           // prepareNextButton('#restoreDb', rollbackParams);
@@ -469,7 +467,7 @@
           $.xhrPool.pop();
           // $(window).unbind('beforeunload');
         },
-        success: function (res, textStatus) {
+        success: function (res) {
           var $action = $('#' + action);
           var response = res;
 
@@ -515,10 +513,9 @@
             if (action === 'download') {
               updateInfoStep('Your server cannot download the file. Please upload it first by ftp in your admin/autoupgrade directory');
             } else {
-              updateInfoStep('[Server Error] Timeout:The request exceeded the max_time_limit. Please change your server configuration.');
+              updateInfoStep('[Server Error] Timeout: The request exceeded the max_time_limit. Please change your server configuration.');
             }
-          }
-          else {
+          } else {
             updateInfoStep('[Ajax / Server Error for action ' + action + '] textStatus: "' + textStatus + ' " errorThrown:"' + errorThrown + ' " jqXHR: " ' + jqXHR.responseText + '"');
           }
         }
@@ -560,7 +557,6 @@
      */
     function handleSuccess(res, action) {
       if (res.next !== '') {
-
         $('#' + res.next).addClass('nextStep');
         if (window.upgrader.manualMode && (action !== 'rollback'
           && action !== 'rollbackComplete'
@@ -599,7 +595,7 @@
         response.nextParams.restoreName = response.nextParams.backupName;
         // FIXME: show backup name
         window.swal({
-          title: 'Migration failed :(',
+          title: 'Update failed :(',
           text: 'Do you want to restore from backup `' + response.nextParams.backupName + '`?',
           type: 'error',
           showCancelButton: true,
@@ -609,6 +605,12 @@
               doAjaxRequest('rollback', response.nextParams);
             }
           );
+      } else if (action === 'upgradeNow' && typeof response.nextErrors !== 'undefined' && $.isArray(response.nextErrors)) {
+        window.swal({
+          title: 'Error',
+          text: response.nextErrors[0],
+          type: 'error'
+        });
       } else {
         $('.button-autoupgrade').html('Operation canceled. An error happened.');
         $(window).unbind();

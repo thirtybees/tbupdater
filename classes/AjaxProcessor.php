@@ -34,27 +34,40 @@ namespace TbUpdaterModule;
  */
 class AjaxProcessor
 {
+    /** @var array $skipAction */
     public static $skipAction = [];
     protected static $instance;
+    /** @var bool $stepDone */
     public $stepDone = true;
+    /** @var bool $status */
     public $status = true;
     public $backupName;
     public $backupFilesFilename;
+    /** @var array $backupIgnoreFiles */
     public $backupIgnoreFiles = [];
     public $backupDbFilename;
     public $restoreName;
     public $installVersion;
     public $restoreFilesFilename;
+    /** @var array $restoreDbFilenames */
     public $restoreDbFilenames = [];
+    /** @var array $installedLanguagesIso */
     public $installedLanguagesIso = [];
     public $modulesAddons;
     public $warningExists;
+    /** @var string $error */
     public $error = '0';
+    /** @var string $next */
     public $next = '';
+    /** @var string $nextDesc */
     public $nextDesc = '';
+    /** @var array $nextParams */
     public $nextParams = [];
+    /** @var array $nextQuickInfo */
     public $nextQuickInfo = [];
+    /** @var array $nextErrors */
     public $nextErrors = [];
+    /** @var array|null $currentParams */
     public $currentParams = [];
     public $latestRootDir;
     /** @var UpgraderTools $tools */
@@ -87,9 +100,13 @@ class AjaxProcessor
         'excludeFilesFromUpgrade',
         'excludeAbsoluteFilesFromUpgrade',
     ];
+    /** @var array $restoreIgnoreAbsoluteFiles */
     protected $restoreIgnoreAbsoluteFiles = [];
+    /** @var array $excludeFilesFromUpgrade */
     protected $excludeFilesFromUpgrade = [];
+    /** @var array $backupIgnoreAbsoluteFiles */
     protected $backupIgnoreAbsoluteFiles = [];
+    /** @var array $excludeAbsoluteFilesFromUpgrade */
     protected $excludeAbsoluteFilesFromUpgrade = [];
     protected $keepImages;
     protected $restoreIgnoreFiles;
@@ -154,9 +171,20 @@ class AjaxProcessor
             }
         }
 
-        // Initialize files at first step
+        // Initialize things here at the first step
         if ($this->action === 'upgradeNow') {
-            $this->initializeFiles();
+            if (!$this->resetTables()) {
+                $this->nextErrors[] = $this->l('Could not prepare the DB tables for the update.');
+                $this->error = 1;
+                $this->next = 'error';
+                $this->status = 'error';
+
+                $this->displayAjax();
+
+                die();
+            } else {
+                $this->initializeFiles();
+            }
         }
     }
 
@@ -174,7 +202,7 @@ class AjaxProcessor
     {
         // need to be called in order to populate $classInModule
         $str = UpgraderTools::findTranslation('tbupdater', $string, $class);
-        $str = $htmlentities ? str_replace('"', '&quot;', htmlentities($str, ENT_QUOTES, 'utf-8')) : $str;
+        $str = $htmlentities ? str_replace('"', '&quot;', htmlentities($str, HTML_ENTITIES, 'UTF-8')) : $str;
         $str = $addslashes ? addslashes($str) : stripslashes($str);
 
         return $str;
@@ -408,12 +436,13 @@ class AjaxProcessor
 
             return false;
         }
+        $filesToBackup = Backup::getBackupFiles(UpgraderTools::$loopBackupFiles);
 
-        if (empty($this->nextParams['filesForBackup'])) {
-            // @todo : only add files and dir listed in "originalPrestashopVersion" list
-            $this->nextParams['filesForBackup'] = $this->listFilesInDir(_PS_ROOT_DIR_, 'backup', false);
-            if (count($this->nextParams['filesForBackup'])) {
-                $this->nextQuickInfo[] = sprintf($this->l('%s Files to backup.'), count($this->nextParams['filesForBackup']));
+        if (empty($filesToBackup)) {
+            $filesToBackup = $this->listFilesInDir(_PS_ROOT_DIR_, 'backup', false);
+            if (count($filesToBackup)) {
+                $this->nextQuickInfo[] = sprintf($this->l('%s Files to backup.'), count($filesToBackup));
+                Backup::addFiles($filesToBackup);
             }
 
             // delete old backup, create new
@@ -422,13 +451,15 @@ class AjaxProcessor
             }
 
             $this->nextQuickInfo[] = sprintf($this->l('backup files initialized in %s'), $this->backupFilesFilename);
+
+            $filesToBackup = Backup::getBackupFiles(UpgraderTools::$loopBackupFiles);
         }
 
         $this->next = 'backupFiles';
-        if (count($this->nextParams['filesForBackup'])) {
-            $this->nextDesc = sprintf($this->l('Backup files in progress. %d files left'), count($this->nextParams['filesForBackup']));
+        if (count($filesToBackup)) {
+            $this->nextDesc = sprintf($this->l('Backup files in progress. %d files left.'), (int) Backup::count());
         }
-        if (is_array($this->nextParams['filesForBackup'])) {
+        if (is_array($filesToBackup)) {
             $zipArchive = true;
             $zip = new \ZipArchive();
             $res = $zip->open($this->tools->backupPath.DIRECTORY_SEPARATOR.$this->backupFilesFilename, \ZipArchive::CREATE);
@@ -441,26 +472,16 @@ class AjaxProcessor
                 $this->stepDone = false;
                 $filesToAdd = [];
                 $closeFlag = true;
-                for ($i = 0; $i < UpgraderTools::$loopBackupFiles; $i++) {
-                    if (count($this->nextParams['filesForBackup']) <= 0) {
-                        $this->stepDone = true;
-                        $this->status = 'ok';
-                        $this->next = 'backupDb';
-                        $this->nextDesc = $this->l('All files saved. Now backing up database');
-                        $this->nextQuickInfo[] = $this->l('All files have been added to archive.', 'AdminThirtyBeesMigrate', true);
-                        break;
-                    }
+                foreach (array_column($filesToBackup, 'file') as $file) {
                     // filesForBackup already contains all the correct files
-                    $file = array_shift($this->nextParams['filesForBackup']);
-
                     $archiveFilename = ltrim(str_replace(_PS_ROOT_DIR_, '', $file), DIRECTORY_SEPARATOR);
                     $size = filesize($file);
                     if ($size < UpgraderTools::$maxBackupFileSize) {
                         if (isset($zipArchive) && $zipArchive) {
                             $addedToZip = $zip->addFile($file, $archiveFilename);
                             if ($addedToZip) {
-                                if ($this->nextParams['filesForBackup']) {
-                                    $this->nextQuickInfo[] = sprintf($this->l('%1$s added to archive. %2$s files left.', 'AdminThirtyBeesMigrate', true), $archiveFilename, count($this->nextParams['filesForBackup']));
+                                if ($filesToBackup) {
+                                    $this->nextQuickInfo[] = sprintf($this->l('%1$s added to archive.', 'AdminThirtyBeesMigrate', true), $archiveFilename);
                                 }
                             } else {
                                 // if an error occur, it's more safe to delete the corrupted backup
@@ -476,20 +497,27 @@ class AjaxProcessor
                             }
                         } else {
                             $filesToAdd[] = $file;
-                            if (count($this->nextParams['filesForBackup'])) {
-                                $this->nextQuickInfo[] = sprintf($this->l('File %1$s (size: %3$s) added to archive. %2$s files left.', 'AdminThirtyBeesMigrate', true), $archiveFilename, count($this->nextParams['filesForBackup']), $size);
-                            } else {
-                                $this->nextQuickInfo[] = sprintf($this->l('File %1$s (size: %2$s) added to archive.', 'AdminThirtyBeesMigrate', true), $archiveFilename, $size);
-                            }
+                            $this->nextQuickInfo[] = sprintf($this->l('File %1$s (size: %2$s) added to archive.', 'AdminThirtyBeesMigrate', true), $archiveFilename, $size);
                         }
                     } else {
                         $this->nextQuickInfo[] = sprintf($this->l('File %1$s (size: %2$s) has been skipped during backup.', 'AdminThirtyBeesMigrate', true), $archiveFilename, $size);
                         $this->nextErrors[] = sprintf($this->l('File %1$s (size: %2$s) has been skipped during backup.', 'AdminThirtyBeesMigrate', true), $archiveFilename, $size);
                     }
                 }
+                if (count($filesToBackup) <= 0) {
+                    $this->stepDone = true;
+                    $this->status = 'ok';
+                    $this->next = 'backupDb';
+                    $this->nextDesc = $this->l('All files saved. Now backing up database');
+                    $this->nextQuickInfo[] = $this->l('All files have been added to the archive.', 'AdminThirtyBeesMigrate', true);
+                }
 
                 if ($zipArchive && $closeFlag && is_object($zip)) {
                     $zip->close();
+                }
+
+                if (is_array($filesToBackup) && !empty($filesToBackup)) {
+                    Backup::removeFiles(array_column($filesToBackup, Backup::PRIMARY));
                 }
 
                 return true;
@@ -504,11 +532,17 @@ class AjaxProcessor
             $this->next = 'backupDb';
             $this->nextDesc = $this->l('All files saved. Now backing up database.');
 
+            if (is_array($filesToBackup) && !empty($filesToBackup)) {
+                Backup::removeFiles(array_column($filesToBackup, Backup::PRIMARY));
+            }
+
             return true;
         }
     }
 
     /**
+     * Ajax process backup DB
+     *
      * @return bool
      *
      * @since 1.0.0
@@ -591,34 +625,34 @@ class AjaxProcessor
                 if (isset($fp)) {
                     fclose($fp);
                 }
-                $backupfile = $this->tools->backupPath.DIRECTORY_SEPARATOR.$this->backupName.DIRECTORY_SEPARATOR.$this->backupDbFilename;
-                $backupfile = preg_replace("#_XXXXXX_#", '_'.str_pad($this->nextParams['dbStep'], 6, '0', STR_PAD_LEFT).'_', $backupfile);
+                $backupFile = $this->tools->backupPath.DIRECTORY_SEPARATOR.$this->backupName.DIRECTORY_SEPARATOR.$this->backupDbFilename;
+                $backupFile = preg_replace("#_XXXXXX_#", '_'.str_pad($this->nextParams['dbStep'], 6, '0', STR_PAD_LEFT).'_', $backupFile);
                 if (!file_exists($this->tools->backupPath.DIRECTORY_SEPARATOR.$this->backupName)) {
                     mkdir($this->tools->backupPath.DIRECTORY_SEPARATOR.$this->backupName, 0777, true);
                 }
 
                 // start init file
                 // Figure out what compression is available and open the file
-                if (file_exists($backupfile)) {
+                if (file_exists($backupFile)) {
                     $this->next = 'error';
                     $this->error = 1;
-                    $this->nextErrors[] = sprintf($this->l('Backup file %s already exists. Operation aborted.'), $backupfile);
-                    $this->nextQuickInfo[] = sprintf($this->l('Backup file %s already exists. Operation aborted.'), $backupfile);
+                    $this->nextErrors[] = sprintf($this->l('Backup file %s already exists. Operation aborted.'), $backupFile);
+                    $this->nextQuickInfo[] = sprintf($this->l('Backup file %s already exists. Operation aborted.'), $backupFile);
                 }
 
                 if (function_exists('bzopen')) {
-                    $backupfile .= '.bz2';
-                    $fp = bzopen($backupfile, 'w');
+                    $backupFile .= '.bz2';
+                    $fp = bzopen($backupFile, 'w');
                 } elseif (function_exists('gzopen')) {
-                    $backupfile .= '.gz';
-                    $fp = gzopen($backupfile, 'w');
+                    $backupFile .= '.gz';
+                    $fp = gzopen($backupFile, 'w');
                 } else {
-                    $fp = fopen($backupfile, 'w');
+                    $fp = fopen($backupFile, 'w');
                 }
 
                 if ($fp === false) {
-                    $this->nextErrors[] = sprintf($this->l('Unable to create backup database file %s.'), addslashes($backupfile));
-                    $this->nextQuickInfo[] = sprintf($this->l('Unable to create backup database file %s.'), addslashes($backupfile));
+                    $this->nextErrors[] = sprintf($this->l('Unable to create backup database file %s.'), addslashes($backupFile));
+                    $this->nextQuickInfo[] = sprintf($this->l('Unable to create backup database file %s.'), addslashes($backupFile));
                     $this->next = 'error';
                     $this->error = 1;
                     $this->nextDesc = $this->l('Error during database backup.');
@@ -627,7 +661,7 @@ class AjaxProcessor
                 }
 
                 $written += fwrite($fp, '/* Backup '.$this->nextParams['dbStep'].' for '.Tools::getHttpHost(false, false).__PS_BASE_URI__."\n *  at ".date('r')."\n */\n");
-                $written += fwrite($fp, "\n".'SET NAMES \'utf8\';'."\n\n");
+                $written += fwrite($fp, "\n".'SET NAMES \'utf8mb4\';'."\n\n");
                 // end init file
             }
 
@@ -636,7 +670,7 @@ class AjaxProcessor
                 continue;
             }
 
-            // start schema : drop & create table only
+            // Start schema: drop & create table only
             if (empty($this->currentParams['backupTable']) && isset($fp)) {
                 // Export the table schema
                 $schema = $this->db->executeS('SHOW CREATE TABLE `'.$table.'`', true, false);
@@ -646,8 +680,8 @@ class AjaxProcessor
                         || (isset($schema[0]['View']) && isset($schema[0]['Create View'])))
                 ) {
                     fclose($fp);
-                    if (isset($backupfile) && file_exists($backupfile)) {
-                        unlink($backupfile);
+                    if (isset($backupFile) && file_exists($backupFile)) {
+                        unlink($backupFile);
                     }
                     $this->nextErrors[] = sprintf($this->l('An error occurred while backing up. Unable to obtain the schema of %s'), $table);
                     $this->nextQuickInfo[] = sprintf($this->l('An error occurred while backing up. Unable to obtain the schema of %s'), $table);
@@ -658,7 +692,6 @@ class AjaxProcessor
                     return false;
                 }
 
-                // case view
                 if (isset($schema[0]['View'])) {
                     $views .= '/* Scheme for view'.$schema[0]['View']." */\n";
                     if ($psBackupDropTable) {
@@ -669,14 +702,13 @@ class AjaxProcessor
                     $views .= preg_replace('#DEFINER=[^\s]+\s#', 'DEFINER=CURRENT_USER ', $schema[0]['Create View']).";\n\n";
                     $written += fwrite($fp, "\n".$views);
                     $ignoreStatsTable[] = $schema[0]['View'];
-                } // case table
-                elseif (isset($schema[0]['Table'])) {
+                } elseif (isset($schema[0]['Table'])) {
                     // Case common table
                     $written += fwrite($fp, '/* Scheme for table '.$schema[0]['Table']." */\n");
                     if ($psBackupDropTable && !in_array($schema[0]['Table'], $ignoreStatsTable)) {
-                        // If some *upgrade* transform a table in a view, drop both just in case
-                        $written += fwrite($fp, 'DROP VIEW IF EXISTS `'.$schema[0]['Table'].'`;'."\n");
-                        $written += fwrite($fp, 'DROP TABLE IF EXISTS `'.$schema[0]['Table'].'`;'."\n");
+                        // If some *upgrade* transforms a table into a view, drop both just in case
+                        $written += fwrite($fp, "DROP VIEW IF EXISTS `{$schema[0]['Table']}`;\n");
+                        $written += fwrite($fp, "DROP TABLE IF EXISTS `{$schema[0]['Table']}`;\n");
                         // CREATE TABLE
                         $written += fwrite($fp, $schema[0]['Create Table'].";\n\n");
                     }
@@ -685,20 +717,27 @@ class AjaxProcessor
                     $lines = $this->nextParams['backupLines'] = explode("\n", $schema[0]['Create Table']);
                 }
             }
-            // end of schema
+            // End of schema
 
             // POPULATE TABLE
             if (!in_array($table, $ignoreStatsTable) && isset($fp)) {
                 do {
                     $backupLoopLimit = $this->nextParams['backupLoopLimit'];
-                    $data = $this->db->executeS('SELECT * FROM `'.$table.'` LIMIT '.(int) $backupLoopLimit.',200', false, false);
+                    $data = $this->db->executeS(
+                        (new DbQuery())
+                            ->select('*')
+                            ->from($table)
+                            ->limit((int) $backupLoopLimit, 200),
+                        true,
+                        false
+                    );
                     $this->nextParams['backupLoopLimit'] += 200;
                     $sizeof = $this->db->numRows();
                     if ($data && ($sizeof > 0)) {
                         // Export the table data
-                        $written += fwrite($fp, 'INSERT INTO `'.$table."` VALUES\n");
+                        $written += fwrite($fp, "INSERT INTO `$table` VALUES\n");
                         $i = 1;
-                        while ($row = $this->db->nextRow($data)) {
+                        foreach ($data as $row) {
                             // this starts a row
                             $s = '(';
                             foreach ($row as $field => $value) {
@@ -761,14 +800,15 @@ class AjaxProcessor
 
             return true;
         }
-        if ($found == 0 && !empty($backupfile)) {
-            if (file_exists($backupfile)) {
-                unlink($backupfile);
+
+        if (!$found && !empty($backupFile)) {
+            if (file_exists($backupFile)) {
+                unlink($backupFile);
             }
-            $this->nextErrors[] = sprintf($this->l('No valid tables were found to back up. Backup of file %s canceled.'), $backupfile);
-            $this->nextQuickInfo[] = sprintf($this->l('No valid tables were found to back up. Backup of file %s canceled.'), $backupfile);
+            $this->nextErrors[] = sprintf($this->l('No valid tables were found to back up. Backup of file %s canceled.'), $backupFile);
+            $this->nextQuickInfo[] = sprintf($this->l('No valid tables were found to back up. Backup of file %s canceled.'), $backupFile);
             $this->error = 1;
-            $this->nextDesc = sprintf($this->l('Error during database backup for file %s.'), $backupfile);
+            $this->nextDesc = sprintf($this->l('Error during database backup for file %s.'), $backupFile);
 
             return false;
         } else {
@@ -800,7 +840,9 @@ class AjaxProcessor
         $this->nextParams = $this->currentParams;
         $upgradeTheme = UpgraderTools::getConfig(UpgraderTools::UPGRADE_DEFAULT_THEME);
 
-        if (!isset($this->nextParams['fileActions'])) {
+        $fileActions = FileActions::getFileActions(UpgraderTools::$loopUpgradeFiles);
+
+        if (empty($fileActions)) {
             // list saved in $this->toUpgradeFileList
             // get files differences (previously generated)
             $filepathListDiff = _PS_ADMIN_DIR_."/autoupgrade/download/thirtybees-file-actions-v{$this->upgrader->version}.json";
@@ -827,7 +869,8 @@ class AjaxProcessor
                 }
                 // Save in an array in `fileActions`
                 // Delete actions at back of array, we will process those first
-                $this->nextParams['fileActions'] = $addFilesForUpgrade + $deleteFilesForUpgrade;
+                FileActions::addFileActions($addFilesForUpgrade + $deleteFilesForUpgrade);
+                $fileActions = FileActions::getFileActions(UpgraderTools::$loopUpgradeFiles);
             } else {
                 $this->nextErrors[] = $this->l('Couldn\'t find a list of files to upgrade');
                 $this->nextDesc = $this->l('Couldn\'t find a list of files to upgrade');
@@ -837,7 +880,7 @@ class AjaxProcessor
                 return false;
             }
 
-            if (count($this->nextParams['fileActions']) === 0) {
+            if (empty($fileActions)) {
                 $this->nextQuickInfo[] = $this->l('[ERROR] Unable to find files to upgrade.');
                 $this->nextErrors[] = $this->l('[ERROR] Unable to find files to upgrade.');
                 $this->nextDesc = $this->l('Unable to list files to upgrade');
@@ -845,8 +888,9 @@ class AjaxProcessor
 
                 return false;
             }
-            $this->nextQuickInfo[] = sprintf($this->l('%s files will be upgraded.'), count($this->nextParams['fileActions']));
-            $this->nextDesc = sprintf($this->l('%s files will be upgraded.'), count($this->nextParams['fileActions']));
+            $count = FileActions::count();
+            $this->nextQuickInfo[] = sprintf($this->l('%s files will be upgraded.'), $count);
+            $this->nextDesc = sprintf($this->l('%s files will be upgraded.'), $count);
             $this->next = 'upgradeFiles';
             $this->stepDone = false;
 
@@ -854,7 +898,7 @@ class AjaxProcessor
         }
         // Later we can choose between _PS_ROOT_DIR_ or _PS_TEST_DIR_
         $this->next = 'upgradeFiles';
-        if (!is_array($this->nextParams['fileActions'])) {
+        if (!is_array($fileActions)) {
             $this->next = 'error';
             $this->nextDesc = $this->l('`fileActions` is not an array');
             $this->nextQuickInfo[] = $this->l('`fileActions` is not an array');
@@ -862,19 +906,7 @@ class AjaxProcessor
 
             return false;
         }
-
-        // @TODO : does not upgrade files in modules, translations if they have not a correct md5 (or crc32, or whatever) from previous version
-        for ($i = 0; $i < UpgraderTools::$loopUpgradeFiles; $i++) {
-            if (count($this->nextParams['fileActions']) <= 0) {
-                $this->next = 'upgradeDb';
-                unset($this->nextParams['fileActions']);
-                $this->nextDesc = $this->l('All files upgraded. Now upgrading database...');
-                $this->nextResponseType = 'json';
-                $this->stepDone = true;
-                break;
-            }
-
-            $fileAction = array_pop($this->nextParams['fileActions']);
+        foreach ($fileActions as $fileAction) {
             if (!$this->upgradeThisFile($fileAction)) {
                 // put the file back to the begin of the list
                 $this->next = 'error';
@@ -883,12 +915,17 @@ class AjaxProcessor
                 break;
             }
         }
-        if (isset($this->nextParams['fileActions']) && count($this->nextParams['fileActions']) > 0) {
-            if (count($this->nextParams['fileActions'])) {
-                $this->nextDesc = sprintf($this->l('%1$s files left to upgrade.'), count($this->nextParams['fileActions']));
-                $this->nextQuickInfo[] = sprintf($this->l('%2$s files left to upgrade.'), count($this->nextParams['fileActions']));
-                $this->stepDone = false;
-            }
+        FileActions::removeFileActions(array_column($fileActions, FileActions::PRIMARY));
+        $count = (int) FileActions::count();
+        if ($count) {
+            $this->nextDesc = sprintf($this->l('%1$s files left to upgrade.'), $count);
+            $this->nextQuickInfo[] = sprintf($this->l('%2$s files left to upgrade.'), $count);
+            $this->stepDone = false;
+        } else {
+            $this->next = 'upgradeDb';
+            $this->nextDesc = $this->l('All files upgraded. Now upgrading database...');
+            $this->nextResponseType = 'json';
+            $this->stepDone = true;
         }
 
         return true;
@@ -938,7 +975,7 @@ class AjaxProcessor
     public function ajaxProcessCleanDatabase()
     {
         /* Clean tabs order */
-        foreach ($this->db->executeS('SELECT DISTINCT `id_parent` FROM `'._DB_PREFIX_.'tab`') as $parent) {
+        foreach ($this->db->executeS((new DbQuery())->select('DISTINCT `id_parent`')->from('tab')) as $parent) {
             $i = 1;
             foreach ($this->db->executeS('SELECT `id_tab` FROM `'._DB_PREFIX_.'tab` WHERE `id_parent` = '.(int) $parent['id_parent'].' ORDER BY IF(class_name IN ("AdminHome", "AdminDashboard"), 1, 2), position ASC') as $child) {
                 $this->db->execute('UPDATE '._DB_PREFIX_.'tab SET position = '.(int) ($i++).' WHERE id_tab = '.(int) $child['id_tab'].' AND id_parent = '.(int) $parent['id_parent']);
@@ -946,7 +983,7 @@ class AjaxProcessor
         }
 
         /* Clean configuration integrity */
-        $this->db->execute('DELETE FROM `'._DB_PREFIX_.'configuration_lang` WHERE (`value` IS NULL AND `date_upd` IS NULL) OR `value` LIKE ""', false);
+        $this->db->delete('configuration_lang', '(`value` IS NULL AND `date_upd` IS NULL) OR `value` LIKE ""', 0, false);
 
         $this->status = 'ok';
         $this->next = 'upgradeComplete';
@@ -1021,7 +1058,7 @@ class AjaxProcessor
                 }
             }
 
-            // order files is important !
+            // file order is important !
             if (is_array($this->restoreDbFilenames)) {
                 sort($this->restoreDbFilenames);
             }
@@ -1070,7 +1107,7 @@ class AjaxProcessor
             $this->nextParams['filesToRestore'] = [];
 
             $this->nextParams['filesToRestore'] = [];
-            for($i = 0; $i < $zip->numFiles; $i++) {
+            for ($i = 0; $i < $zip->numFiles; $i++) {
                 $this->nextParams['filesToRestore'][] = $zip->getNameIndex($i);
             }
         }
@@ -2704,5 +2741,43 @@ class AjaxProcessor
         $tokenShouldBe = $blowfish->encrypt('thirtybees1337H4ck0rzz');
 
         return $tokenShouldBe && $ajaxToken === $tokenShouldBe;
+    }
+
+    /**
+     * Reset module tables
+     *
+     * @return bool
+     */
+    protected function resetTables()
+    {
+        return $this->runSql('reset');
+    }
+
+    /**
+     * Run an sql file
+     *
+     * @param string $filename
+     *
+     * @return bool
+     */
+    protected function runSql($filename)
+    {
+        if (!file_exists(_PS_MODULE_DIR_.'tbupdater'.DIRECTORY_SEPARATOR.'sql'.DIRECTORY_SEPARATOR.$filename.'.sql')) {
+            return false;
+        } elseif (!$sql = file_get_contents(_PS_MODULE_DIR_.'tbupdater'.DIRECTORY_SEPARATOR.'sql'.DIRECTORY_SEPARATOR.$filename.'.sql')) {
+            return false;
+        }
+        $sql = str_replace(['PREFIX_', 'ENGINE_TYPE', 'DB_NAME'], [_DB_PREFIX_, _MYSQL_ENGINE_, _DB_NAME_], $sql);
+        $sql = preg_split("/;\s*[\r\n]+/", trim($sql));
+
+        foreach ($sql as $query) {
+            try {
+                Db::getInstance()->execute(trim($query), false);
+            } catch (\Exception $e) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -108,6 +108,10 @@ class UpgraderTools
     // Performance variables
     /** @var int $loopBackupFiles */
     public static $loopBackupFiles = 400;
+    /** @var int $loopUpgradeFiles */
+    public static $loopUpgradeFiles = 600;
+    /** @var int $loopRestoreFiles */
+    public static $loopRestoreFiles = 400; // json, xml
     /**
      * Used for translations
      *
@@ -118,10 +122,9 @@ class UpgraderTools
     public static $loopBackupDbTime = 6;
     /** @var int $maxWrittenAllowed */
     public static $maxWrittenAllowed = 4194304;
-    /** @var int $loopUpgradeFiles */
-    public static $loopUpgradeFiles = 600;
-    public static $loopRestoreFiles = 400; // json, xml
+    /** @var int $loopRestoreQueryTime */
     public static $loopRestoreQueryTime = 6;
+    /** @var int $loopUpgradeModulesTime */
     public static $loopUpgradeModulesTime = 6;
     public static $loopRemoveSamples = 400;
 

@@ -68,7 +68,7 @@ class DbPDO extends Db
         $sql = '
 			CREATE TABLE `'.$prefix.'test` (
 			`test` tinyint(1) unsigned NOT NULL
-			) ENGINE=MyISAM';
+			) ENGINE=InnoDB';
         $result = $link->query($sql);
         if (!$result) {
             $error = $link->errorInfo();
@@ -124,22 +124,38 @@ class DbPDO extends Db
     }
 
     /**
+     * Tries to connect to the database
+     *
      * @see DbCore::connect()
+     * @return \PDO
+     *
+     * @since 1.0.0
+     * @version 1.0.0 Initial version
      */
     public function connect()
     {
         try {
             $this->link = $this->_getPDO($this->server, $this->user, $this->password, $this->database, 5);
         } catch (\PDOException $e) {
-            die(sprintf(Tools::displayError('Link to database cannot be established: %s'), $e->getMessage()));
-            exit();
+            die(sprintf(Tools::displayError('Link to database cannot be established: %s'), utf8_encode($e->getMessage())));
         }
 
         // UTF-8 support
-        if (!is_object($this->link) || $this->link->exec('SET NAMES \'utf8\'') === false) {
-            Tools::displayError('PrestaShop Fatal error: no utf-8 support. Please check your server configuration.');
-            exit();
+        if ($this->link->exec('SET NAMES \'utf8mb4\'') === false) {
+            die(Tools::displayError('thirty bees Fatal error: no UTF-8 support. Please check your server configuration.'));
         }
+
+        $this->link->exec('SET SESSION sql_mode = \'\'');
+
+        // Synchronize MySQL timezone with current PHP timezone
+        $now = new \DateTime();
+        $minutes = $now->getOffset() / 60;
+        $sign = ($minutes < 0 ? -1 : 1);
+        $minutes = abs($minutes);
+        $hours = floor($minutes / 60);
+        $minutes -= $hours * 60;
+        $offset = sprintf('%+d:%02d', $hours * $sign, $minutes);
+        $this->link->exec("SET time_zone='$offset'");
 
         return $this->link;
     }
