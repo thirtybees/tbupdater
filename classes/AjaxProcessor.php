@@ -314,7 +314,7 @@ class AjaxProcessor
             preg_match('#([0-9]+\.[0-9]+)(?:\.[0-9]+){1,2}#', _TB_VERSION_, $matches);
 
             $this->nextQuickInfo[] = sprintf($this->l('Downloading from %s and %s'), $this->upgrader->coreLink, $this->upgrader->extraLink);
-            $this->nextQuickInfo[] = sprintf($this->l('Files will be saved to %s and %s'), $this->getCoreFilePath());
+            $this->nextQuickInfo[] = sprintf($this->l('Files will be saved to %s and %s'), $this->getCoreFilePath(), $this->getExtraFilePath());
             if (file_exists($this->tools->downloadPath)) {
                 Tools::deleteDirectory($this->tools->downloadPath, false);
                 $this->nextQuickInfo[] = $this->l('Download directory has been cleared');
