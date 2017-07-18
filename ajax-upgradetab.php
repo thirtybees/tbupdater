@@ -37,6 +37,7 @@ if (function_exists('date_default_timezone_set')) {
     date_default_timezone_set($timezone);
 }
 
+require_once __DIR__.'/../../config/defines.inc.php';
 require_once __DIR__.'/../../config/settings.inc.php';
 require_once __DIR__.'/../../modules/tbupdater/classes/autoload.php';
 
@@ -66,7 +67,6 @@ if (!isset($request->dir)) {
     die('no directory');
 }
 
-require_once __DIR__.'/../../config/defines.inc.php';
 require_once(AUTOUPGRADE_MODULE_DIR.'alias.php');
 
 $dir = Tools::safeOutput($request->dir);
