@@ -856,8 +856,8 @@ class AjaxProcessor
                 $filepathListDiff[$require] = _PS_ADMIN_DIR_."/autoupgrade/download/thirtybees-file-actions-v{$require}.json";
             }
             // Filter versions that are lower than the current one
-            $filepathListDiff = array_filter($filepathListDiff, function ($item) {
-                return Version::gt($item, _TB_VERSION_);
+            $filepathListDiff = array_filter($filepathListDiff, function ($item, $version) {
+                return Version::gt($version, _TB_VERSION_);
             });
             // Sort ascending
             uksort($filepathListDiff, ['TbUpdaterModule\\SemVer\\Version', 'gt']);
