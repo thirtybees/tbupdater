@@ -853,12 +853,12 @@ class AjaxProcessor
 
             $filepathListDiff = [$this->upgrader->version => _PS_ADMIN_DIR_."/autoupgrade/download/thirtybees-file-actions-v{$this->upgrader->version}.json"];
             foreach (Upgrader::getInstance()->requires as $require) {
-                $filepathListDiff[$require] = _PS_ADMIN_DIR_."/autoupgrade/download/thirtybees-file-actions-v{$require}.json";
+                // Filter requires that are lower than the current one
+                if (Version::gt($require, _TB_VERSION_)) {
+                    $filepathListDiff[$require] = _PS_ADMIN_DIR_."/autoupgrade/download/thirtybees-file-actions-v{$require}.json";
+                }
             }
-            // Filter versions that are lower than the current one
-            $filepathListDiff = array_filter($filepathListDiff, function ($item, $version) {
-                return Version::gt($version, _TB_VERSION_);
-            });
+
             // Sort ascending
             uksort($filepathListDiff, ['TbUpdaterModule\\SemVer\\Version', 'gt']);
 
