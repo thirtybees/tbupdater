@@ -25,6 +25,8 @@
 
 namespace TbUpdaterModule;
 
+use TbUpdaterModule\SemVer\Version;
+
 /**
  * Class AjaxProcessor
  *
@@ -853,6 +855,11 @@ class AjaxProcessor
             foreach (Upgrader::getInstance()->requires as $require) {
                 $filepathListDiff[$require] = _PS_ADMIN_DIR_."/autoupgrade/download/thirtybees-file-actions-v{$require}.json";
             }
+            // Filter versions that are lower than the current one
+            $filepathListDiff = array_filter($filepathListDiff, function ($item) {
+                return Version::gt($item, _TB_VERSION_);
+            });
+            // Sort ascending
             uksort($filepathListDiff, ['TbUpdaterModule\\SemVer\\Version', 'gt']);
 
             $deleteFilesForUpgrade = [];
