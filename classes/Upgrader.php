@@ -218,6 +218,18 @@ class Upgrader
                 $highestVersion = $version;
             }
         }
+        if ($highestVersion === _TB_VERSION_) {
+            $this->version = '';
+            $this->channel = $this->selectedChannel;
+            $this->coreLink = '';
+            $this->extraLink = '';
+            $this->md5Core = '';
+            $this->md5Extra = '';
+            $this->fileActionsLink = '';
+
+            return false;
+        }
+
         $versionsInfo = $versionsInfo[$highestVersion];
 
         $this->version = $highestVersion;
