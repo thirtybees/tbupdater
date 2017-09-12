@@ -78,7 +78,7 @@ class TbUpdater extends Module
     {
         $this->name = 'tbupdater';
         $this->tab = 'administration';
-        $this->version = '1.2.3';
+        $this->version = '1.2.4';
         $this->author = 'thirty bees';
         $this->bootstrap = true;
         $this->need_instance = 1;
@@ -355,6 +355,8 @@ class TbUpdater extends Module
                 @file_put_contents(__DIR__.'/cache/modules.json', json_encode($cache, JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES));
 
                 return $cache;
+            } else {
+                ddd($cache);
             }
 
             Configuration::updateGlobalValue(static::LAST_CHECK, time());
