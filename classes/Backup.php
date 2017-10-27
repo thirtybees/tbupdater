@@ -41,9 +41,10 @@ class Backup
      */
     public static function addFiles(array $files)
     {
-        foreach ($files as &$item) {
-            $item = ['file' => $item];
+        foreach ($files as &$file) {
+            $file = ['file' => Db::getInstance()->escape($file)];
         }
+        unset($file);
 
         $success = true;
         foreach (array_chunk($files, static::CHUNK_SIZE) as $chunk) {
