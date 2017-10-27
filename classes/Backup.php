@@ -49,7 +49,7 @@ class Backup
         foreach (array_chunk($files, static::CHUNK_SIZE) as $chunk) {
             $success &= Db::getInstance()->insert(
                 static::TABLE,
-                $files,
+                $chunk,
                 false,
                 false
             );
