@@ -53,7 +53,6 @@ spl_autoload_register(
             'TbUpdaterModule\\Group',
             'TbUpdaterModule\\Hook',
             'TbUpdaterModule\\Language',
-            'TbUpdaterModule\\ObjectFileModel',
             'TbUpdaterModule\\ObjectModel',
             'TbUpdaterModule\\PEAR',
             'TbUpdaterModule\\PrestaShopCollection',
