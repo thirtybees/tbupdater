@@ -41,7 +41,6 @@ spl_autoload_register(
             'TbUpdaterModule\\Configuration',
             'TbUpdaterModule\\ConfigurationTest',
             'TbUpdaterModule\\Context',
-            'TbUpdaterModule\\Core_Foundation_Database_EntityInterface',
             'TbUpdaterModule\\CryptBlowfish',
             'TbUpdaterModule\\Db',
             'TbUpdaterModule\\DbPDO',
