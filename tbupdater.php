@@ -78,7 +78,7 @@ class TbUpdater extends Module
     {
         $this->name = 'tbupdater';
         $this->tab = 'administration';
-        $this->version = '1.2.4';
+        $this->version = '1.2.5';
         $this->author = 'thirty bees';
         $this->bootstrap = true;
         $this->need_instance = 1;
@@ -356,7 +356,9 @@ class TbUpdater extends Module
 
                 return $cache;
             } else {
-                ddd($cache);
+                $cache = json_encode($cache);
+
+                Logger::addLog("Error: thirty bees updater did not understand this feed: $cache");
             }
 
             Configuration::updateGlobalValue(static::LAST_CHECK, time());
