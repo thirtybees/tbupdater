@@ -509,7 +509,12 @@ class AjaxProcessor
                         $this->nextErrors[] = sprintf($this->l('File %1$s (size: %2$s) has been skipped during backup.', 'AdminThirtyBeesMigrate', true), $archiveFilename, $size);
                     }
                 }
-                if (count($filesToBackup) <= 0) {
+
+                if (is_array($filesToBackup) && !empty($filesToBackup)) {
+                    Backup::removeFiles(array_column($filesToBackup, Backup::PRIMARY));
+                }
+
+                if (Backup::count() <= 0) {
                     $this->stepDone = true;
                     $this->status = 'ok';
                     $this->next = 'backupDb';
