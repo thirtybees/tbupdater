@@ -323,9 +323,9 @@ abstract class Db
         } else {
             if (_PS_DEBUG_SQL_ && $errno && !defined('PS_INSTALLATION_IN_PROGRESS')) {
                 if ($sql) {
-                    Tools::displayError($this->getMsgError().'<br /><br /><pre>'.$sql.'</pre>');
+                    echo $this->getMsgError().'<br /><br /><pre>'.$sql.'</pre>';
                 }
-                Tools::displayError($this->getMsgError());
+                echo $this->getMsgError();
                 exit();
             }
         }
