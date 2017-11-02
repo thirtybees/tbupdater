@@ -670,7 +670,7 @@ class AjaxProcessor
                     return false;
                 }
 
-                $written += fwrite($fp, '/* Backup '.$this->nextParams['dbStep'].' for '.Tools::getHttpHost(false, false).__PS_BASE_URI__."\n *  at ".date('r')."\n */\n");
+                $written += fwrite($fp, '/* Backup '.$this->nextParams['dbStep'].' for '.Tools::getHttpHost(false, false).realpath(dirname($_SERVER['SCRIPT_NAME']).'/../../')."\n *  at ".date('r')."\n */\n");
                 $written += fwrite($fp, "\n".'SET NAMES \'utf8mb4\';'."\n\n");
                 // end init file
             }
@@ -918,7 +918,6 @@ class AjaxProcessor
             // Delete actions at back of array, we will process those first
             FileActions::addFileActions($addFilesForUpgrade + $deleteFilesForUpgrade);
             $fileActions = FileActions::getFileActions(UpgraderTools::$loopUpgradeFiles);
-
 
             if (empty($fileActions)) {
                 $this->nextQuickInfo[] = $this->l('[ERROR] Unable to find files to upgrade.');
