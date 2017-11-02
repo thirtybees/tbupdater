@@ -733,14 +733,7 @@ class AjaxProcessor
             if (!in_array($table, $ignoreStatsTable) && isset($fp)) {
                 do {
                     $backupLoopLimit = $this->nextParams['backupLoopLimit'];
-                    $data = $this->db->executeS(
-                        (new DbQuery())
-                            ->select('*')
-                            ->from($table)
-                            ->limit((int) $backupLoopLimit, 200),
-                        true,
-                        false
-                    );
+                    $data = $this->db->executeS('SELECT * FROM '.$table.' LIMIT '.(int)$backupLoopLimit.',200');
                     $this->nextParams['backupLoopLimit'] += 200;
                     $sizeof = $this->db->numRows();
                     if ($data && ($sizeof > 0)) {
