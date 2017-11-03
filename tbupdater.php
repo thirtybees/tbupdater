@@ -186,7 +186,9 @@ class TbUpdater extends Module
         if (Module::isInstalled('psonefivemigrator')
             || Module::isInstalled('psonesixmigrator')
             || Module::isInstalled('psonesevenmigrator')) {
+            $content .= '<div class="row">';
             $content .= $this->display(__FILE__, 'views/templates/admin/migratorwarning.tpl');
+            $content .= '</div>';
         } else {
             $content .= $this->getUpdateContent();
         }
