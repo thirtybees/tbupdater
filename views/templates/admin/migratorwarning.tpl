@@ -21,6 +21,6 @@
 * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 * PrestaShop is an internationally registered trademark & property of PrestaShop SA
 *}
-<div class="panel">
+<div class="panel col-lg-12">
     <div class="alert alert-warning">{l s='One of the PS => thirty bees migration modules is still installed. Please remove them before running this updater.' mod='tbupdater'}</div>
 </div>
