@@ -36,20 +36,6 @@ $channel = UpgraderTools::getConfig('channel');
 	</div>
 
     <?php if ($this->configOk()) : ?>
-        <?php $showBigButtonNewVersion = false; ?>
-        <?php if (count(\TbUpdaterModule\AjaxProcessor::$skipAction) > 0) : ?>
-			<div id="skipAction-list" class="alert alert-warning">
-                <?php echo $this->l('The following actions will be automatically replaced'); ?>
-				<ul>
-                    <?php foreach (\TbUpdaterModule\AjaxProcessor::$skipAction as $k => $v) : ?>
-						<li><?php echo sprintf($this->l('%1$s will be replaced with %2$s'), '<strong>'.$k.'</strong>', '<b>'.$v.'</b>'); ?></li>
-                    <?php endforeach; ?>
-				</ul>
-				<p><?php echo $this->l('To change this behavior, you need to manually edit your php files'); ?></p>
-			</div>
-        <?php else : ?>
-            <?php $showBigButtonNewVersion = true; ?>
-        <?php endif; ?>
         <?php echo $this->display('tbupdater', 'views/templates/admin/channelselect.tpl'); ?>
         <?php if ($this->configOk()) : ?>
 			<p class="clearfix configOk">
