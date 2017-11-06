@@ -55,4 +55,6 @@ $ajaxProcessor = \TbUpdaterModule\AjaxProcessor::getInstance();
 
     window.tbupdater.currentIndex = '<?php echo $this->baseUrl; ?>';
     window.tbupdater.ajaxToken = '<?php echo $this->generateAjaxToken(); ?>';
+
+  window.tbupdater.textVersionUpToDate = '<?php echo $this->l('Your thirty bees installation is up to date!'); ?>';
 </script>

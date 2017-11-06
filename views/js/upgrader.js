@@ -123,7 +123,7 @@
           if (res && !res.error) {
             result = res.nextParams.result;
             if (!result.available) {
-              $selectedVersion.html('Not available');
+              $selectedVersion.html(window.tbupdater.textVersionUpToDate);
             } else {
               $selectedVersion.html(result.version);
               $upgradeNow.attr('disabled', false);
