@@ -261,7 +261,7 @@
       $(window).bind('beforeunload', function (e) {
         var event = e;
 
-        if (confirm(window.upgrader.txtError[38])) {
+        if (confirm(window.upgrader.txtInProgress)) {
           $.xhrPool.abortAll();
           $(window).unbind('beforeunload');
           return true;
