@@ -36,8 +36,6 @@ use TbUpdaterModule\SemVer\Version;
  */
 class AjaxProcessor
 {
-    /** @var array $skipAction */
-    public static $skipAction = [];
     protected static $instance;
     /** @var bool $stepDone */
     public $stepDone = true;
@@ -2239,11 +2237,7 @@ class AjaxProcessor
 
         if (isset($this->action) && $this->action) {
             $action = $this->action;
-            if (isset(static::$skipAction[$action])) {
-                $this->next = static::$skipAction[$action];
-                $this->nextQuickInfo[] = $this->nextDesc = sprintf($this->l('action %s skipped'), $action);
-                unset($this->action);
-            } elseif (!method_exists(get_class($this), 'ajaxProcess'.$action)) {
+            if (!method_exists(get_class($this), 'ajaxProcess'.$action)) {
                 $this->nextDesc = sprintf($this->l('action "%1$s" not found'), $action);
                 $this->next = 'error';
                 $this->error = '1';
