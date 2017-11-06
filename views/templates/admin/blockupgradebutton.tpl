@@ -1,5 +1,4 @@
-<?php
-/**
+{*
  * 2007-2016 PrestaShop
  *
  * thirty bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
@@ -21,30 +20,28 @@
  * @copyright 2007-2016 PrestaShop SA
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  * PrestaShop is an internationally registered trademark & property of PrestaShop SA
- */
-use TbUpdaterModule\UpgraderTools;
-
-/** @var TbUpdater $this */
-$channel = UpgraderTools::getConfig('channel');
-?>
+ *}
 
 <div id="upgradeButtonBlock" class="panel col-lg-12">
-	<div class="panel-heading"><i class="icon icon-wrench"></i> <?php echo $this->l('Start your Upgrade'); ?></div>
-    <div class="blockOneClickUpgrade">
-		<strong><?php echo $this->l('Your current thirty bees version'); ?>:</strong>
-		<code><?php echo _TB_VERSION_; ?></code>
-	</div>
+    <div class="panel-heading">
+        <i class="icon icon-wrench"></i>
+        {l s='Start your Upgrade' mod='tbupdater'}
+    </div>
 
-    <?php if ($this->configOk()) : ?>
-        <?php echo $this->display('tbupdater', 'views/templates/admin/channelselect.tpl'); ?>
-        <?php if ($this->configOk()) : ?>
-			<p class="clearfix configOk">
-				<a href="" id="upgradeNow" class="upgradestep btn btn-primary btn-lg">
-					<i class="icon icon-wrench"></i> <?php echo $this->l('Update thirty bees'); ?>
-				</a>
-			</p>
-        <?php endif; ?>
-	<?php else: ?>
-		<strong><?php echo $this->l('Make sure every item on the checklist is OK before you continue'); ?></strong>
-    <?php endif; ?>
+    <div class="blockOneClickUpgrade">
+        <strong>{l s='Your current thirty bees version:' mod='tbupdater'}</strong>
+        <code>{$currentVersion}</code>
+    </div>
+    {if $configOk}
+        {include file='./channelselect.tpl'}
+
+        <p class="clearfix configOk">
+            <a href="" id="upgradeNow" class="upgradestep btn btn-primary btn-lg">
+                <i class="icon icon-wrench"></i>
+                {l s='Update thirty bees' mod='tbupdater'}
+            </a>
+        </p>
+    {else}
+        <strong>{l s='Make sure every item on the checklist is OK before continuing.' mod='tbupdater'}</strong>
+    {/if}
 </div>
