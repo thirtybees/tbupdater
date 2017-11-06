@@ -35,24 +35,24 @@ $ajaxProcessor = \TbUpdaterModule\AjaxProcessor::getInstance();
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/sweetalert2/6.5.3/sweetalert2.min.css" integrity="sha256-n3wlJfrvYrUl1vS7mEs17EWYDW8fpE6DQv95+EnpHoY=" crossorigin="anonymous">
 
 <script type="text/javascript">
-	window.upgrader = {};
-	window.upgrader.manualMode = false;
-	window.upgrader._PS_MODE_DEV_ = <?php echo (defined('_PS_DEV_MODE_') && _PS_DEV_MODE_) ? 'true' : 'false'; ?>;
-	window.upgrader.PS_AUTOUP_BACKUP = <?php echo (UpgraderTools::getConfig(UpgraderTools::BACKUP)) ? 'true' : 'false' ?>;
+	window.tbupdater = {};
+	window.tbupdater.manualMode = false;
+	window.tbupdater._PS_MODE_DEV_ = <?php echo (defined('_PS_DEV_MODE_') && _PS_DEV_MODE_) ? 'true' : 'false'; ?>;
+	window.tbupdater.PS_AUTOUP_BACKUP = <?php echo (UpgraderTools::getConfig(UpgraderTools::BACKUP)) ? 'true' : 'false' ?>;
 
-    window.upgrader.txtInProgress = '<?php echo $this->l('An update is currently in progress... Click "{OK}" to abort.'); ?>';
+    window.tbupdater.txtInProgress = '<?php echo $this->l('An update is currently in progress... Click "{OK}" to abort.'); ?>';
 
-	window.upgrader.firstTimeParams = <?php echo $ajaxProcessor->buildAjaxResult(); ?>;
+	window.tbupdater.firstTimeParams = <?php echo $ajaxProcessor->buildAjaxResult(); ?>;
 
-    window.upgrader.upgradeTabFileExists = <?php echo (file_exists(_PS_ADMIN_DIR_.DIRECTORY_SEPARATOR.'autoupgrade'.DIRECTORY_SEPARATOR.'ajax-upgradetab.php')) ? 'true' : 'false'; ?>;
-    window.upgrader.ajaxLocation = '<?php echo __PS_BASE_URI__.$adminDir.'/autoupgrade/ajax-upgradetab.php'; ?>';
+    window.tbupdater.upgradeTabFileExists = <?php echo (file_exists(_PS_ADMIN_DIR_.DIRECTORY_SEPARATOR.'autoupgrade'.DIRECTORY_SEPARATOR.'ajax-upgradetab.php')) ? 'true' : 'false'; ?>;
+    window.tbupdater.ajaxLocation = '<?php echo __PS_BASE_URI__.$adminDir.'/autoupgrade/ajax-upgradetab.php'; ?>';
 
-    window.upgrader.dir = '<?php echo $adminDir; ?>';
-    window.upgrader.token = '<?php echo Tools::getAdminTokenLite('AdminModules'); ?>';
-    window.upgrader.tab = '<?php echo get_class($this); ?>';
+    window.tbupdater.dir = '<?php echo $adminDir; ?>';
+    window.tbupdater.token = '<?php echo Tools::getAdminTokenLite('AdminModules'); ?>';
+    window.tbupdater.tab = '<?php echo get_class($this); ?>';
 
-    window.upgrader.channel = '<?php echo UpgraderTools::getConfig('channel'); ?>';
+    window.tbupdater.channel = '<?php echo UpgraderTools::getConfig('channel'); ?>';
 
-    window.upgrader.currentIndex = '<?php echo $this->baseUrl; ?>';
-    window.upgrader.ajaxToken = '<?php echo $this->generateAjaxToken(); ?>';
+    window.tbupdater.currentIndex = '<?php echo $this->baseUrl; ?>';
+    window.tbupdater.ajaxToken = '<?php echo $this->generateAjaxToken(); ?>';
 </script>

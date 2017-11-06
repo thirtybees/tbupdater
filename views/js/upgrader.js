@@ -1,6 +1,6 @@
 (function () {
   function initializeUpgrader() {
-    if (typeof $ === 'undefined' || typeof window.upgrader === 'undefined') {
+    if (typeof $ === 'undefined' || typeof window.tbupdater === 'undefined') {
       setTimeout(initializeUpgrader, 100);
 
       return;
@@ -9,7 +9,7 @@
     function setConfig(key, value, type) {
       $.ajax({
         type: 'POST',
-        url: window.upgrader.currentIndex + '&token=' + window.upgrader.token + '&tab=' + window.upgrader.tab + '&ajax=1&action=setConfig',
+        url: window.tbupdater.currentIndex + '&token=' + window.tbupdater.token + '&tab=' + window.tbupdater.tab + '&ajax=1&action=setConfig',
         dataType: 'json',
         data: {
           configKey: key,
@@ -82,8 +82,8 @@
       }
     }
 
-    window.upgrader.firstTimeParams = window.upgrader.firstTimeParams.nextParams;
-    window.upgrader.firstTimeParams.firstTime = '1';
+    window.tbupdater.firstTimeParams = window.tbupdater.firstTimeParams.nextParams;
+    window.tbupdater.firstTimeParams.firstTime = '1';
 
     // js initialization : prepare upgrade and rollback buttons
     function refreshChannelInfo() {
@@ -96,24 +96,24 @@
       $selectedVersion.html('<i class="icon icon-spinner icon-pulse"></i>');
       $selectChannelErrors.hide();
 
-      if (typeof window.upgrader.currentChannelAjax === 'object') {
-        window.upgrader.currentChannelAjax.abort();
+      if (typeof window.tbupdater.currentChannelAjax === 'object') {
+        window.tbupdater.currentChannelAjax.abort();
       }
 
-      window.upgrader.currentChannelAjax = $.ajax({
+      window.tbupdater.currentChannelAjax = $.ajax({
         type: 'POST',
-        url: window.upgrader.ajaxLocation,
+        url: window.tbupdater.ajaxLocation,
         dataType: 'json',
         processData: false,
         contentType: 'application/json; ; charset=UTF-8',
         data: JSON.stringify({
-          dir: window.upgrader.dir,
-          token: window.upgrader.token,
-          autoupgradeDir: window.upgrader.autoupgradeDir,
+          dir: window.tbupdater.dir,
+          token: window.tbupdater.token,
+          autoupgradeDir: window.tbupdater.autoupgradeDir,
           tab: 'AdminThirtyBeesMigrate',
           action: 'getChannelInfo',
           ajax: '1',
-          ajaxToken: window.upgrader.ajaxToken,
+          ajaxToken: window.tbupdater.ajaxToken,
           params: {
             channel: channel,
           },
@@ -186,7 +186,7 @@
       $.ajaxSetup({ timeout: 7200000 });
 
       // prepare available button here, without params ?
-      prepareNextButton('#upgradeNow', window.upgrader.firstTimeParams);
+      prepareNextButton('#upgradeNow', window.tbupdater.firstTimeParams);
 
       /**
        * reset rollbackParams js array (used to init rollback button)
@@ -197,7 +197,7 @@
         $(this).next().remove();
         // show delete button if the value is not 0
         if ($(this).val()) {
-          $(this).after('<a class="confirmBeforeDelete btn btn-danger" href="index.php?tab=AdminThirtyBeesMigrate&token=' + window.upgrader.token + '&amp;deletebackup&amp;name=' + $(this).val() + '"><i class="icon icon-times"></i> Delete</a>');
+          $(this).after('<a class="confirmBeforeDelete btn btn-danger" href="index.php?tab=AdminThirtyBeesMigrate&token=' + window.tbupdater.token + '&amp;deletebackup&amp;name=' + $(this).val() + '"><i class="icon icon-times"></i> Delete</a>');
           $(this).next().click(function (e) {
             window.swal({
               title: 'Delete backup',
@@ -217,7 +217,7 @@
 
         if ($restoreNameSelect.val()) {
           $('#rollback').removeAttr('disabled');
-          rollbackParams = $.extend(true, {}, window.upgrader.firstTimeParams);
+          rollbackParams = $.extend(true, {}, window.tbupdater.firstTimeParams);
 
           delete rollbackParams.backupName;
           delete rollbackParams.backupFilesFilename;
@@ -261,7 +261,7 @@
       $(window).bind('beforeunload', function (e) {
         var event = e;
 
-        if (confirm(window.upgrader.txtInProgress)) {
+        if (confirm(window.tbupdater.txtInProgress)) {
           $.xhrPool.abortAll();
           $(window).unbind('beforeunload');
           return true;
@@ -299,7 +299,7 @@
         showConfigResult(res.nextDesc);
       }
       $upgradeNow.unbind();
-      $upgradeNow.replaceWith('<a class="button-autoupgrade" href="' + window.upgrader.currentIndex + '&token=' + window.upgrader.token + '">Click to refresh the page and use the new configuration</a>');
+      $upgradeNow.replaceWith('<a class="button-autoupgrade" href="' + window.tbupdater.currentIndex + '&token=' + window.tbupdater.token + '">Click to refresh the page and use the new configuration</a>');
     }
 
     function isAllConditionOk() {
@@ -413,7 +413,7 @@
       var params = res.nextParams;
       var $selectRestoreName = $('select[name=restoreName]');
 
-      if (res.stepDone && typeof window.upgrader.PS_AUTOUP_BACKUP !== 'undefined' && window.upgrader.PS_AUTOUP_BACKUP) {
+      if (res.stepDone && typeof window.tbupdater.PS_AUTOUP_BACKUP !== 'undefined' && window.tbupdater.PS_AUTOUP_BACKUP) {
         $('#restoreBackupContainer').show();
         $selectRestoreName.children('options').removeAttr('selected');
         $selectRestoreName.append('<option selected="selected" value="' + params.backupName + '">' + params.backupName + '</option>');
@@ -421,7 +421,7 @@
       }
     }
 
-    window.upgrader.availableFunctions = {
+    window.tbupdater.availableFunctions = {
       startProcess: startProcess,
       afterUpdateConfig: afterUpdateConfig,
       isAllConditionOk: isAllConditionOk,
@@ -439,28 +439,28 @@
 
 
     function callFunction(func) {
-      window.upgrader.availableFunctions[func].apply(this, Array.prototype.slice.call(arguments, 1));
+      window.tbupdater.availableFunctions[func].apply(this, Array.prototype.slice.call(arguments, 1));
     }
 
     function doAjaxRequest(action, nextParams) {
       var req;
 
-      if (typeof window.upgrader._PS_MODE_DEV_ !== 'undefined' && window.upgrader._PS_MODE_DEV_) {
+      if (typeof window.tbupdater._PS_MODE_DEV_ !== 'undefined' && window.tbupdater._PS_MODE_DEV_) {
         addQuickInfo(['[DEV] ajax request : ' + action]);
       }
 
       $('#pleaseWait').show();
       req = $.ajax({
         type: 'POST',
-        url: window.upgrader.ajaxLocation,
+        url: window.tbupdater.ajaxLocation,
         dataType: 'json',
         processData: false,
         contentType: 'application/json; charset=UTF-8',
         data: JSON.stringify({
-          dir: window.upgrader.dir,
+          dir: window.tbupdater.dir,
           ajax: '1',
-          token: window.upgrader.token,
-          ajaxToken: window.upgrader.ajaxToken,
+          token: window.tbupdater.token,
+          ajaxToken: window.tbupdater.ajaxToken,
           autoupgradeDir: window.token.autoupgradeDir,
           tab: 'AdminThirtyBeesMigrate',
           action: action,
@@ -483,7 +483,7 @@
           addQuickInfo(response.nextQuickInfo);
           addError(response.nextErrors);
           updateInfoStep(response.nextDesc, response.step);
-          window.upgrader.currentParams = response.nextParams;
+          window.tbupdater.currentParams = response.nextParams;
           if (response.status === 'ok') {
             $action.addClass('done');
             if (response.stepDone) {
@@ -544,12 +544,12 @@
         e.preventDefault();
         $('#currentlyProcessing').show();
 
-        window.upgrader.action = buttonSelector.substr(1);
-        if (window.upgrader.action === 'upgradeNow') {
+        window.tbupdater.action = buttonSelector.substr(1);
+        if (window.tbupdater.action === 'upgradeNow') {
           nextParams.newsletter = !!$('#newsletter').attr('checked');
           nextParams.employee = $('#employee').val();
         }
-        window.upgrader.res = doAjaxRequest(window.upgrader.action, nextParams);
+        window.tbupdater.res = doAjaxRequest(window.tbupdater.action, nextParams);
       });
     }
 
@@ -565,7 +565,7 @@
     function handleSuccess(res, action) {
       if (res.next !== '') {
         $('#' + res.next).addClass('nextStep');
-        if (window.upgrader.manualMode && (action !== 'rollback'
+        if (window.tbupdater.manualMode && (action !== 'rollback'
           && action !== 'rollbackComplete'
           && action !== 'restoreFiles'
           && action !== 'restoreDb'
@@ -638,7 +638,7 @@
           }
         }
 
-        window.upgrader.res = doAjaxRequest('updateConfig', params);
+        window.tbupdater.res = doAjaxRequest('updateConfig', params);
       });
     });
   }
