@@ -1,5 +1,4 @@
-<?php
-/**
+{*
  * 2007-2016 PrestaShop
  *
  * thirty bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
@@ -21,18 +20,18 @@
  * @copyright 2007-2016 PrestaShop SA
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  * PrestaShop is an internationally registered trademark & property of PrestaShop SA
- */
+ *}
 
-/** @var TbUpdater $this */
-$upgrader = \TbUpdaterModule\Upgrader::getInstance();
-?>
 <div class="form-group">
-	<label for="channelSelect"><?php echo $this->l('Channel:'); ?></label>
-	<select id="channelSelect" name="channel" class="form-control fixed-width-xxl">
-		<?php foreach (['stable', 'rc', 'beta', 'alpha'] as $channel) : ?>
-		<option id="use<?php echo ucfirst($channel); ?>" value="<?php echo $channel; ?>"><?php echo $channel; ?></option>
-		<?php endforeach; ?>
-	</select>
-	<div id="channelSelectErrors" class="alert alert-danger" style="display:none"></div>
+    <label for="channelSelect">{l s='Channel:' mod='tbupdater'}</label>
+    <select id="channelSelect" name="channel" class="form-control fixed-width-xxl">
+        {foreach ['stable', 'rc', 'beta', 'alpha'] as $channel}
+            <option id="use{$channel|ucfirst}" value="{$channel}">
+                {$channel}
+            </option>
+        {/foreach}
+    </select>
+    <div id="channelSelectErrors" class="alert alert-danger" style="display:none"></div>
 </div>
-<strong><?php echo $this->l('Going to update to thirty bees version'); ?>:</strong> <em id="selectedVersion"><?php echo $upgrader->version ?: $this->l('Nothing available'); ?></em>
+<strong>{l s='Going to update to thirty bees version:' mod='tbupdater'}</strong>
+<em id="selectedVersion">...</em>

@@ -50,7 +50,7 @@ $channel = UpgraderTools::getConfig('channel');
         <?php else : ?>
             <?php $showBigButtonNewVersion = true; ?>
         <?php endif; ?>
-        <?php echo $this->displayAdminTemplate(__DIR__.'/channelselect.phtml'); ?>
+        <?php echo $this->display('tbupdater', 'views/templates/admin/channelselect.tpl'); ?>
         <?php if ($this->configOk()) : ?>
 			<p class="clearfix configOk">
 				<a href="" id="upgradeNow" class="upgradestep btn btn-primary btn-lg">
