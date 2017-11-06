@@ -916,7 +916,12 @@ class TbUpdater extends Module
      */
     protected function displayBlockUpgradeButton()
     {
-        return $this->displayAdminTemplate(__DIR__.'/views/templates/admin/blockupgradebutton.phtml');
+        $this->context->smarty->assign([
+            'currentVersion'  => _TB_VERSION_,
+            'configOk'        => $this->configOk(),
+        ]);
+
+        return $this->display(__FILE__, 'views/templates/admin/blockupgradebutton.tpl');
     }
 
     /**
