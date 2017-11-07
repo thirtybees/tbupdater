@@ -38,12 +38,8 @@
     }
 
     function updateInfoStep(msg) {
-      var $infoStep = $('#infoStep');
-
       if (msg) {
-        $infoStep
-          .append('<p>' + msg + '</p>')
-          .attr({ scrollTop: $infoStep.attr('scrollHeight') }, 1);
+        $('#infoStep').append('<p>' + msg + '</p>');
       }
     }
 
@@ -78,7 +74,7 @@
         for (i = 0; i < arrQuickInfo.length; i += 1) {
           $quickInfo.append(arrQuickInfo[i] + '<br />');
         }
-        $quickInfo.attr({ scrollTop: $quickInfo.attr('scrollHeight') }, 1);
+        $quickInfo.parent().scrollTop(9999);
       }
     }
 
@@ -472,7 +468,6 @@
         complete: function () {
           // just remove the item to the 'abort list'
           $.xhrPool.pop();
-          // $(window).unbind('beforeunload');
         },
         success: function (res) {
           var $action = $('#' + action);

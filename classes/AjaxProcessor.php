@@ -430,14 +430,14 @@ class AjaxProcessor
                 unlink($this->tools->backupPath.DIRECTORY_SEPARATOR.$this->backupFilesFilename);
             }
 
-            $this->nextQuickInfo[] = sprintf($this->l('backup files initialized in %s'), $this->backupFilesFilename);
+            $this->nextQuickInfo[] = sprintf($this->l('Backup files initialized in %s.'), $this->backupFilesFilename);
 
             $filesToBackup = Backup::getBackupFiles(UpgraderTools::$loopBackupFiles);
         }
 
         $this->next = 'backupFiles';
         if (count($filesToBackup)) {
-            $this->nextDesc = sprintf($this->l('Backup files in progress. %d files left.'), (int) Backup::count());
+            $this->nextQuickInfo[] = sprintf($this->l('Backup files in progress. %d files left.'), (int) Backup::count());
         }
         if (is_array($filesToBackup)) {
             $zipArchive = true;
@@ -459,11 +459,7 @@ class AjaxProcessor
                     if ($size < UpgraderTools::$maxBackupFileSize) {
                         if (isset($zipArchive) && $zipArchive) {
                             $addedToZip = $zip->addFile($file, $archiveFilename);
-                            if ($addedToZip) {
-                                if ($filesToBackup) {
-                                    $this->nextQuickInfo[] = sprintf($this->l('%1$s added to archive.', 'AdminThirtyBeesMigrate', true), $archiveFilename);
-                                }
-                            } else {
+                            if (!$addedToZip) {
                                 // if an error occur, it's more safe to delete the corrupted backup
                                 $zip->close();
                                 if (file_exists($this->tools->backupPath.DIRECTORY_SEPARATOR.$this->backupFilesFilename)) {
@@ -492,7 +488,7 @@ class AjaxProcessor
                     $this->stepDone = true;
                     $this->status = 'ok';
                     $this->next = 'backupDb';
-                    $this->nextDesc = $this->l('All files saved. Now backing up database');
+                    $this->nextDesc = $this->l('All files backed up. Now backing up database');
                     $this->nextQuickInfo[] = $this->l('All files have been added to the archive.', 'AdminThirtyBeesMigrate', true);
                 }
 
@@ -1413,7 +1409,7 @@ class AjaxProcessor
             }
 
             if ($extractResult) {
-                $this->nextQuickInfo[] = $this->l('Archive extracted');
+                $this->nextQuickInfo[] = sprintf($this->l('Archive %s extracted'), $fromFile);
 
                 return true;
             } else {
