@@ -341,7 +341,7 @@
       var todoUl = '<ul>';
       $upgradeResultToDoList
         .addClass('hint clearfix')
-        .html('<h3>ToDo list:</h3>');
+        .html('<p>ToDo list:</p>');
 
       $pleaseWait.hide();
       $infoStep.html('<h3>Upgrade Complete!</h3>');
@@ -349,7 +349,7 @@
       for (i = 0; i < todoList.length; i += 1) {
         todoUl += '<li>' + todoList[i] + '</li>';
       }
-      todoUl += '</ul>';
+      todoUl += '</ul><p>&nbsp;</p>';
       $upgradeResultToDoList.append(todoUl);
       $upgradeResultToDoList.show();
 
