@@ -54,7 +54,6 @@ class AjaxProcessor
     /** @var array $installedLanguagesIso */
     public $installedLanguagesIso = [];
     public $modulesAddons;
-    public $warningExists;
     /** @var string $error */
     public $error = '0';
     /** @var string $next */
@@ -92,7 +91,6 @@ class AjaxProcessor
         'restoreDbFilenames',
         'installedLanguagesIso',
         'modulesAddons',
-        'warningExists',
         'backupIgnoreFiles',
         'backupIgnoreAbsoluteFiles',
         'restoreIgnoreFiles',
@@ -989,11 +987,7 @@ class AjaxProcessor
      */
     public function ajaxProcessUpgradeComplete()
     {
-        if (!$this->warningExists) {
-            $this->nextDesc = $this->l('Upgrade process done. Congratulations! You can now reactivate your shop.');
-        } else {
-            $this->nextDesc = $this->l('Upgrade process done, but some warnings have been found.');
-        }
+        $this->nextDesc = $this->l('Upgrade process done. Congratulations! You can now reactivate your shop.');
         $this->next = '';
 
         if (UpgraderTools::getConfig('channel') != 'archive' && file_exists($this->getCoreFilePath()) && unlink($this->getCoreFilePath())) {
@@ -1857,8 +1851,6 @@ class AjaxProcessor
 
         if ($this->next === 'error') {
             return false;
-        } elseif (!empty($warningExist) || $this->warningExists) {
-            $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('Warning detected during upgrade.');
         } else {
             $this->nextDesc = $this->l('Database upgrade completed');
         }
