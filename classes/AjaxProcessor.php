@@ -2308,29 +2308,24 @@ class AjaxProcessor
         // translations_custom and mails_custom list are currently not used
         // later, we could handle customization with some kind of diff functions
         // for now, just copy $file in str_replace($this->latestRootDir,_PS_ROOT_DIR_)
-        $path = $fileAction['path'];
-        $orig = $this->tools->autoupgradePath.DIRECTORY_SEPARATOR.'latest'.$path;
-        if (Tools::substr($path, 0, 1) !== '/') {
-            $path = '/'.$path;
+        $path = ltrim($fileAction['path'], '/');
+        $orig = $this->tools->autoupgradePath.'/latest/'.$path;
+
+        $adminDir = ltrim(str_replace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_), '/');
+        if (Tools::substr($path, 0, 5) === 'admin') {
+            $path = $adminDir.Tools::substr($path, 5);
         }
 
-        $adminDir = str_replace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_);
-        if (Tools::substr($path, 0, 6) === '/admin') {
-            $newPath = $adminDir.Tools::substr($path, 6);
-        } else {
-            $newPath = $path;
-        }
-
-        $dest = _PS_ROOT_DIR_.$newPath;
+        $dest = _PS_ROOT_DIR_.'/'.$path;
 
         switch ($fileAction['action']) {
             case 'delete':
                 if (is_dir($dest)) {
                     UpgraderTools::rrmdir($dest);
-                    $this->nextQuickInfo[] = sprintf($this->l('Recursively removed directory %1$s.'), $dest);
+                    $this->nextQuickInfo[] = sprintf($this->l('Recursively removed directory %1$s.'), $path);
                 } else {
                     @unlink($dest);
-                    $this->nextQuickInfo[] = sprintf($this->l('Removed file %1$s.'), $dest);
+                    $this->nextQuickInfo[] = sprintf($this->l('Removed file %1$s.'), $path);
                 }
                 break;
 
@@ -2361,7 +2356,7 @@ class AjaxProcessor
                 }
 
                 if (copy($orig, $dest)) {
-                    $this->nextQuickInfo[] = sprintf($this->l('Copied %1$s to %2$s.'), $orig, $dest);
+                    $this->nextQuickInfo[] = sprintf($this->l('Installed %1$s.'), $path, $dest);
 
                     return true;
                 } else {
