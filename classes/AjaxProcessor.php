@@ -1718,28 +1718,28 @@ class AjaxProcessor
         $this->writeNewSettings();
 
         // Settings updated, compile and cache directories must be emptied
-        $arrayToClean[] = _PS_ROOT_DIR_.'/tools/smarty/cache/';
-        $arrayToClean[] = _PS_ROOT_DIR_.'/tools/smarty/compile/';
-        $arrayToClean[] = _PS_ROOT_DIR_.'/tools/smarty_v2/cache/';
-        $arrayToClean[] = _PS_ROOT_DIR_.'/tools/smarty_v2/compile/';
-        $arrayToClean[] = _PS_ROOT_DIR_.'/cache/smarty/cache/';
-        $arrayToClean[] = _PS_ROOT_DIR_.'/cache/smarty/compile/';
+        $arrayToClean = [
+            _PS_ROOT_DIR_.'/tools/smarty/cache/',
+            _PS_ROOT_DIR_.'/tools/smarty/compile/',
+            _PS_ROOT_DIR_.'/tools/smarty_v2/cache/',
+            _PS_ROOT_DIR_.'/tools/smarty_v2/compile/',
+            _PS_ROOT_DIR_.'/cache/smarty/cache/',
+            _PS_ROOT_DIR_.'/cache/smarty/compile/',
+        ];
 
         foreach ($arrayToClean as $dir) {
-            if (!file_exists($dir)) {
-                $this->nextQuickInfo[] = sprintf($this->l('[SKIP] directory "%s" does not exist and cannot be emptied.'), str_replace(_PS_ROOT_DIR_, '', $dir));
-                continue;
-            } else {
+            if (file_exists($dir)) {
                 foreach (scandir($dir) as $file) {
-                    if ($file[0] != '.' && $file != 'index.php' && $file != '.htaccess') {
-                        if (is_file($dir.$file)) {
-                            unlink($dir.$file);
-                        } elseif (is_dir($dir.$file.DIRECTORY_SEPARATOR)) {
-                            Tools::deleteDirectory($dir.$file.DIRECTORY_SEPARATOR, true);
+                    if ($file[0] !== '.' && $file !== 'index.php' && $file !== '.htaccess') {
+                        $path = $dir.$file;
+                        if (is_dir($path)) {
+                            Tools::deleteDirectory($path, true);
+                        } else {
+                            @unlink($path);
                         }
-                        $this->nextQuickInfo[] = sprintf($this->l('[CLEANING CACHE] File %s removed'), $file);
                     }
                 }
+                $this->nextQuickInfo[] = sprintf($this->l('Cache in %s cleaned.'), $dir);
             }
         }
 
