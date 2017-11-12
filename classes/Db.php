@@ -223,8 +223,7 @@ abstract class Db
         // This method must be used only with queries which display results
         if (!preg_match('#^\s*\(?\s*(select|show|explain|describe|desc)\s#i', $sql)) {
             if (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
-                Tools::displayError('Db->executeS() must be used only with select, show, explain or describe queries');
-                exit();
+                die(Tools::displayError('Db->executeS() must be used only with select, show, explain or describe queries.'));
             }
 
             return $this->execute($sql, $useCache);
@@ -323,10 +322,9 @@ abstract class Db
         } else {
             if (_PS_DEBUG_SQL_ && $errno && !defined('PS_INSTALLATION_IN_PROGRESS')) {
                 if ($sql) {
-                    echo $this->getMsgError().'<br /><br /><pre>'.$sql.'</pre>';
+                    die(Tools::displayError($this->getMsgError().'<br /><br /><pre>'.$sql.'</pre>'));
                 }
-                echo $this->getMsgError();
-                exit();
+                die($this->getMsgError());
             }
         }
     }
@@ -459,9 +457,7 @@ abstract class Db
                 return $this->update($table, $data, $where, $limit, $useNull, $useCache, false);
 
             default:
-                Tools::displayError('Wrong argument (miss type) in Db::autoExecute()');
-                exit();
-                break;
+                die(Tools::displayError('Wrong argument (miss type) in Db::autoExecute().'));
         }
     }
 
@@ -496,8 +492,7 @@ abstract class Db
                 if ($type == Db::REPLACE) {
                     $insertKeyword = 'REPLACE';
                 } else {
-                    Tools::displayError('Bad keyword, must be Db::INSERT or Db::INSERT_IGNORE or Db::REPLACE');
-                    exit();
+                    die(Tools::displayError('Bad keyword, must be Db::INSERT or Db::INSERT_IGNORE or Db::REPLACE.'));
                 }
             }
         }
@@ -516,8 +511,7 @@ abstract class Db
                 if (isset($keysStringified)) {
                     // Check if row array mapping are the same
                     if (!in_array("`$key`", $keys)) {
-                        Tools::displayError('Keys form $data subarray don\'t match');
-                        exit();
+                        die(Tools::displayError('Keys form $data subarray don\'t match.'));
                     }
                 } else {
                     $keys[] = "`$key`";
