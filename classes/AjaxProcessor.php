@@ -329,10 +329,10 @@ class AjaxProcessor
                 $this->nextDesc = $this->l('Download complete. Now extracting...');
             } else {
                 if ($md5Core !== $this->upgrader->md5Core) {
-                    $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('MD5 sum of the core package (%s) does not match.'), $md5Core);
+                    $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Unable to download (part of) the update package. MD5 sum of the core package (%s) does not match. Are downloads limited on your hosting?'), $md5Core);
                 }
                 if ($md5Extra !== $this->upgrader->md5Extra) {
-                    $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('MD5 sum of the extra package (%s) does not match.'), $md5Extra);
+                    $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('Unable to download (part of) the update package. MD5 sum of the extra package (%s) does not match. Are downloads limited on your hosting?'), $md5Extra);
                 }
             }
         } else {
