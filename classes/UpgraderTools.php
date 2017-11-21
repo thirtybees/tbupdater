@@ -234,7 +234,7 @@ class UpgraderTools
             'loopUpgradeModulesTime' => [       6,       12,       25],
             'loopRemoveSamples'      => [     400,      800,     1600],
         ];
-        switch (static::getConfig('PS_AUTOUP_PERFORMANCE')) {
+        switch (static::getConfig(UpgraderTools::PERFORMANCE)) {
             case 3:
                 foreach ($perfArray as $property => $values) {
                     self::$$property = $values[2];
