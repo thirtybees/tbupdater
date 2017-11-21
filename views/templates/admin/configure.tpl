@@ -23,6 +23,6 @@
 *}
 <div class="panel col-lg-12">
 	<h3><i class="icon icon-refresh"></i> {l s='thirty bees updater' mod='tbupdater'}</h3>
-	<div class="alert alert-info">{l s='This module keeps your modules updated. In the future you can use this module to update thirty bees as well.' mod='tbupdater'}</div>
+	<div class="alert alert-info">{l s='This module keeps your modules updated. Click the button below to force an update check.' mod='tbupdater'}</div>
 	<a href="{$baseUrl|escape:'htmlall':'UTF-8'}&checkForUpdates" class="btn btn-default"><i class="icon icon-refresh"></i> {l s='Check for module updates' mod='tbupdater'}</a>
 </div>
