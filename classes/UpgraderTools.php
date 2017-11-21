@@ -263,8 +263,6 @@ class UpgraderTools
      * @return false|array|string
      *
      * @since 1.0.0
-     *
-     * @todo: move to `UpgraderTools`
      */
     public static function getConfig($key = '')
     {
