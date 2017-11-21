@@ -199,7 +199,7 @@ class AjaxProcessor
      *
      * @since 1.0.0
      */
-    protected function l($string, $class = 'AdminThirtyBeesMigrateController', $addslashes = false, $htmlentities = true)
+    protected function l($string, $class = 'TbUpdater', $addslashes = false, $htmlentities = true)
     {
         // need to be called in order to populate $classInModule
         $str = UpgraderTools::findTranslation('tbupdater', $string, $class);
@@ -465,16 +465,16 @@ class AjaxProcessor
                                 }
                                 $this->next = 'error';
                                 $this->error = 1;
-                                $this->nextDesc = sprintf($this->l('Error when trying to add %1$s to archive %2$s.', 'AdminThirtyBeesMigrate', true), $file, $archiveFilename);
+                                $this->nextDesc = sprintf($this->l('Error when trying to add %1$s to archive %2$s.', 'TbUpdater', true), $file, $archiveFilename);
                                 $closeFlag = false;
                                 break;
                             }
                         } else {
                             $filesToAdd[] = $file;
-                            $this->nextQuickInfo[] = sprintf($this->l('File %1$s (size: %2$s) added to archive.', 'AdminThirtyBeesMigrate', true), $archiveFilename, $size);
+                            $this->nextQuickInfo[] = sprintf($this->l('File %1$s (size: %2$s) added to archive.', 'TbUpdater', true), $archiveFilename, $size);
                         }
                     } else {
-                        $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('File %1$s (size: %2$s) has been skipped during backup.', 'AdminThirtyBeesMigrate', true), $archiveFilename, $size);
+                        $this->nextErrors[] = $this->nextQuickInfo[] = sprintf($this->l('File %1$s (size: %2$s) has been skipped during backup.', 'TbUpdater', true), $archiveFilename, $size);
                     }
                 }
 
@@ -487,7 +487,7 @@ class AjaxProcessor
                     $this->status = 'ok';
                     $this->next = 'backupDb';
                     $this->nextDesc = $this->l('All files backed up. Now backing up database');
-                    $this->nextQuickInfo[] = $this->l('All files have been added to the archive.', 'AdminThirtyBeesMigrate', true);
+                    $this->nextQuickInfo[] = $this->l('All files have been added to the archive.', 'TbUpdater', true);
                 }
 
                 if ($zipArchive && $closeFlag && is_object($zip)) {

@@ -391,10 +391,10 @@ class UpgraderTools
      *
      * @since 1.0.0
      */
-    protected function l($string, $class = 'AdminThirtyBeesMigrateController', $addslashes = false, $htmlentities = true)
+    protected function l($string, $class = 'TbUpdater', $addslashes = false, $htmlentities = true)
     {
         // need to be called in order to populate $classInModule
-        $str = static::findTranslation('tbupdater', $string, 'AdminThirtyBeesMigrateController');
+        $str = static::findTranslation('tbupdater', $string, 'TbUpdater');
         $str = $htmlentities ? str_replace('"', '&quot;', htmlentities($str, ENT_QUOTES, 'utf-8')) : $str;
         $str = $addslashes ? addslashes($str) : stripslashes($str);
 

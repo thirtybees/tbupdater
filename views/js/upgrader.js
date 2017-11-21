@@ -105,8 +105,8 @@
         data: JSON.stringify({
           dir: window.tbupdater.dir,
           token: window.tbupdater.token,
+          configure: 'tbupdater',
           autoupgradeDir: window.tbupdater.autoupgradeDir,
-          tab: 'AdminThirtyBeesMigrate',
           action: 'getChannelInfo',
           ajax: '1',
           ajaxToken: window.tbupdater.ajaxToken,
@@ -193,7 +193,7 @@
         $(this).next().remove();
         // show delete button if the value is not 0
         if ($(this).val()) {
-          $(this).after('<a class="confirmBeforeDelete btn btn-danger" href="index.php?tab=AdminThirtyBeesMigrate&token=' + window.tbupdater.token + '&amp;deletebackup&amp;name=' + $(this).val() + '"><i class="icon icon-times"></i> Delete</a>');
+          $(this).after('<a class="confirmBeforeDelete btn btn-danger" href="index.php?tab=AdminModules&configure=tbupdater&token=' + window.tbupdater.token + '&amp;deletebackup&amp;name=' + $(this).val() + '"><i class="icon icon-times"></i> Delete</a>');
           $(this).next().click(function (e) {
             window.swal({
               title: 'Delete backup',
@@ -322,11 +322,9 @@
 
     }
 
-    function afterUpgradeComplete(res) {
-      var params = res.nextParams;
+    function afterUpgradeComplete() {
       var $pleaseWait = $('#pleaseWait');
       var $upgradeResultToDoList = $('#upgradeResultToDoList');
-      var $upgradeResultCheck = $('#upgradeResultCheck');
       var $infoStep = $('#infoStep');
       var todoList = [
         'Cookies have changed, you will need to log in again once you refreshed the page',
@@ -370,14 +368,14 @@
       startProcess('rollback');
     }
 
-    function afterRollbackComplete(res) {
+    function afterRollbackComplete() {
       $('#pleaseWait').hide();
       $('#upgradeResultCheck')
         .addClass('ok')
         .removeClass('fail')
-        .html('<p>Restoration complete.</p>')
+        .html('<p>Restore complete.</p>')
         .show('slow');
-      updateInfoStep('<h3>Restoration complete.</h3>');
+      updateInfoStep('<h3>Restore complete.</h3>');
       $(window).unbind();
     }
 
@@ -452,7 +450,6 @@
           token: window.tbupdater.token,
           ajaxToken: window.tbupdater.ajaxToken,
           autoupgradeDir: window.token.autoupgradeDir,
-          tab: 'AdminThirtyBeesMigrate',
           action: action,
           params: nextParams
         }),
@@ -562,8 +559,7 @@
           && action !== 'noRollbackFound')) {
           prepareNextButton('#' + res.next, res.nextParams);
           window.swal('Manually go to button ' + res.next);
-        }
-        else {
+        } else {
           // if next is rollback, prepare nextParams with rollbackDbFilename and rollbackFilesFilename
           if (res.next === 'rollback') {
             res.nextParams.restoreName = '';
@@ -572,14 +568,12 @@
           // 2) remove all step link (or show them only in dev mode)
           // 3) when steps link displayed, they should change color when passed if they are visible
         }
-      }
-      else {
+      } else {
         // Way To Go, end of upgrade process
         addQuickInfo(['End of process']);
       }
     }
 
-// res = {nextParams, nextDesc}
     function handleError(res, action) {
       var response = res;
       // display error message in the main process thing
