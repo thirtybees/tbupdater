@@ -552,19 +552,15 @@ class AjaxProcessor
         $this->nextParams = $this->currentParams;
         $startTime = time();
 
-        $psBackupAll = true;
         $psBackupDropTable = true;
-        if (!$psBackupAll) {
-            $ignoreStatsTable = [
-                _DB_PREFIX_.'connections',
-                _DB_PREFIX_.'connections_page',
-                _DB_PREFIX_.'connections_source',
-                _DB_PREFIX_.'guest',
-                _DB_PREFIX_.'statssearch',
-            ];
-        } else {
-            $ignoreStatsTable = [];
-        }
+        $ignoreStatsTable = [
+            _DB_PREFIX_.'connections',
+            _DB_PREFIX_.'connections_page',
+            _DB_PREFIX_.'connections_source',
+            _DB_PREFIX_.'guest',
+            _DB_PREFIX_.'search_index',
+            _DB_PREFIX_.'statssearch',
+        ];
 
         // INIT LOOP
         if (!isset($this->nextParams['tablesToBackup']) || empty($this->nextParams['tablesToBackup'])) {
@@ -697,7 +693,7 @@ class AjaxProcessor
             if (!in_array($table, $ignoreStatsTable) && isset($fp)) {
                 do {
                     $backupLoopLimit = $this->nextParams['backupLoopLimit'];
-                    $data = $this->db->executeS('SELECT * FROM '.$table.' LIMIT '.(int)$backupLoopLimit.',200');
+                    $data = $this->db->executeS('SELECT * FROM '.$table.' LIMIT '.(int) $backupLoopLimit.',200');
                     $this->nextParams['backupLoopLimit'] += 200;
                     $sizeof = $this->db->numRows();
                     if ($data && ($sizeof > 0)) {
