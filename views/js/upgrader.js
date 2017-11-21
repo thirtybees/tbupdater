@@ -456,9 +456,9 @@
         beforeSend: function (jqXHR) {
           $.xhrPool.push(jqXHR);
         },
-        complete: function () {
-          // just remove the item to the 'abort list'
-          $.xhrPool.pop();
+        complete: function (jqXHR) {
+          var i = $.xhrPool.indexOf(jqXHR);
+          if (i > -1) $.xhrPool.splice(i, 1);
         },
         success: function (res) {
           var $action = $('#' + action);
