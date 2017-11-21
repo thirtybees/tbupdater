@@ -693,8 +693,8 @@ class AjaxProcessor
             if (!in_array($table, $ignoreStatsTable) && isset($fp)) {
                 do {
                     $backupLoopLimit = $this->nextParams['backupLoopLimit'];
-                    $data = $this->db->executeS('SELECT * FROM '.$table.' LIMIT '.(int) $backupLoopLimit.',200');
-                    $this->nextParams['backupLoopLimit'] += 200;
+                    $data = $this->db->executeS('SELECT * FROM '.$table.' LIMIT '.(int) $backupLoopLimit.', '.(int) UpgraderTools::$loopBackupFiles);
+                    $this->nextParams['backupLoopLimit'] += (int) UpgraderTools::$loopBackupFiles;
                     $sizeof = $this->db->numRows();
                     if ($data && ($sizeof > 0)) {
                         // Export the table data
