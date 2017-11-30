@@ -369,8 +369,7 @@ class AjaxProcessor
                     $this->next = 'upgradeFiles';
                     $this->nextDesc = $this->l('File extraction complete. Backup process skipped. Now upgrading files.');
                 } else {
-                    $this->next = 'backupDb';
-//                    $this->next = 'backupFiles';
+                    $this->next = 'backupFiles';
                     $this->nextDesc = $this->l('File extraction complete. Now backing up files.');
                 }
 
@@ -555,18 +554,22 @@ class AjaxProcessor
 
         $psBackupDropTable = true;
         $ignoreStatsTable = [
-            _DB_PREFIX_.'connections',
-            _DB_PREFIX_.'connections_page',
-            _DB_PREFIX_.'connections_source',
-            _DB_PREFIX_.'guest',
-            _DB_PREFIX_.'search_index',
-            _DB_PREFIX_.'statssearch',
+            'connections',
+            'connections_page',
+            'connections_source',
+            'guest',
+            'search_index',
+            'statssearch',
         ];
 
         // INIT LOOP
         if (!isset($this->nextParams['tablesToBackup']) || empty($this->nextParams['tablesToBackup'])) {
             $this->nextParams['dbStep'] = 0;
-            $tablesToBackup = $this->db->executeS('SHOW TABLES LIKE "'._DB_PREFIX_.'%"', true, false);
+            $tablesToBackup = (array) $this->db->executeS('SHOW TABLES LIKE "'._DB_PREFIX_.'%"', true, false);
+            foreach ($tablesToBackup as &$tableToBackup) {
+                $tableToBackup = current($tableToBackup);
+            }
+            $tablesToBackup = array_diff($tablesToBackup, $ignoreStatsTable);
             $this->nextParams['tablesToBackup'] = $tablesToBackup;
         }
 
@@ -587,7 +590,7 @@ class AjaxProcessor
                 if (count($tablesToBackup) == 0) {
                     break;
                 }
-                $table = current(array_shift($tablesToBackup));
+                $table = array_shift($tablesToBackup);
                 $this->nextParams['backupLoopLimit'] = 0;
             }
 
@@ -742,7 +745,6 @@ class AjaxProcessor
             }
             $found++;
             $timeElapsed = time() - $startTime;
-            $this->nextQuickInfo[] = sprintf($this->l('%1$s table has been saved.'), $table);
         } while (($timeElapsed < UpgraderTools::$loopBackupDbTime) && ($written < UpgraderTools::$maxWrittenAllowed));
 
         // end of loop
@@ -754,12 +756,16 @@ class AjaxProcessor
         $this->nextParams['tablesToBackup'] = $tablesToBackup;
 
         if (count($tablesToBackup) > 0) {
-            $this->nextQuickInfo[] = sprintf($this->l('%1$s tables have been saved.'), $found);
             $this->next = 'backupDb';
             $this->stepDone = false;
             if (count($tablesToBackup)) {
-                $this->nextDesc = sprintf($this->l('Database backup: %s table(s) left...'), count($tablesToBackup));
-                $this->nextQuickInfo[] = sprintf($this->l('Database backup: %s table(s) left...'), count($tablesToBackup));
+                if (isset($table)) {
+                    $this->nextDesc = sprintf($this->l('Database backup (currently processing `%s`) [%s table(s) left...]'), $table, count($tablesToBackup));
+                    $this->nextQuickInfo[] = sprintf($this->l('Database backup (currently processing `%s`) [%s table(s) left...]'), $table, count($tablesToBackup));
+                } else {
+                    $this->nextDesc = sprintf($this->l('Database backup [%s table(s) left...]'), count($tablesToBackup));
+                    $this->nextQuickInfo[] = sprintf($this->l('Database backup [%s table(s) left...]'), count($tablesToBackup));
+                }
             }
 
             return true;
@@ -779,9 +785,6 @@ class AjaxProcessor
             unset($this->nextParams['backupLines']);
             unset($this->nextParams['backupTable']);
             unset($this->nextParams['tablesToBackup']);
-            if ($found) {
-                $this->nextQuickInfo[] = sprintf($this->l('%1$s tables have been saved.'), $found);
-            }
             $this->stepDone = true;
             // reset dbStep at the end of this step
             $this->nextParams['dbStep'] = 0;

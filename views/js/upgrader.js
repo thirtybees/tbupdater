@@ -71,9 +71,8 @@
 
       if (arrQuickInfo) {
         $quickInfo.show();
-        for (i = 0; i < arrQuickInfo.length - 4; i += 1) {
-          // $quickInfo.append(arrQuickInfo[i] + '<br />');
-          $quickInfo.html(arrQuickInfo[i] + '<br />');
+        for (i = 0; i < arrQuickInfo.length; i += 1) {
+          $quickInfo.append(arrQuickInfo[i] + '<br />');
         }
         $quickInfo.parent().scrollTop(9999);
       }
