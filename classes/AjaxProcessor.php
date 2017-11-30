@@ -369,7 +369,8 @@ class AjaxProcessor
                     $this->next = 'upgradeFiles';
                     $this->nextDesc = $this->l('File extraction complete. Backup process skipped. Now upgrading files.');
                 } else {
-                    $this->next = 'backupFiles';
+                    $this->next = 'backupDb';
+//                    $this->next = 'backupFiles';
                     $this->nextDesc = $this->l('File extraction complete. Now backing up files.');
                 }
 
@@ -693,7 +694,7 @@ class AjaxProcessor
             if (!in_array($table, $ignoreStatsTable) && isset($fp)) {
                 do {
                     $backupLoopLimit = $this->nextParams['backupLoopLimit'];
-                    $data = $this->db->executeS('SELECT * FROM '.$table.' LIMIT '.(int) $backupLoopLimit.', '.(int) UpgraderTools::$loopBackupFiles);
+                    $data = $this->db->executeS('SELECT * FROM `'.$table.'` LIMIT '.(int) $backupLoopLimit.', '.(int) UpgraderTools::$loopBackupFiles);
                     $this->nextParams['backupLoopLimit'] += (int) UpgraderTools::$loopBackupFiles;
                     $sizeof = $this->db->numRows();
                     if ($data && ($sizeof > 0)) {
@@ -961,8 +962,8 @@ class AjaxProcessor
         /* Clean tabs order */
         foreach ($this->db->executeS((new DbQuery())->select('DISTINCT `id_parent`')->from('tab')) as $parent) {
             $i = 1;
-            foreach ($this->db->executeS('SELECT `id_tab` FROM `'._DB_PREFIX_.'tab` WHERE `id_parent` = '.(int) $parent['id_parent'].' ORDER BY IF(class_name IN ("AdminHome", "AdminDashboard"), 1, 2), position ASC') as $child) {
-                $this->db->execute('UPDATE '._DB_PREFIX_.'tab SET position = '.(int) ($i++).' WHERE id_tab = '.(int) $child['id_tab'].' AND id_parent = '.(int) $parent['id_parent']);
+            foreach ($this->db->executeS('SELECT `id_tab` FROM `'._DB_PREFIX_.'tab` WHERE `id_parent` = '.(int) $parent['id_parent'].' ORDER BY IF(`class_name` IN ("AdminHome", "AdminDashboard"), 1, 2), `position` ASC') as $child) {
+                $this->db->execute('UPDATE `'._DB_PREFIX_.'tab` SET position = '.(int) ($i++).' WHERE `id_tab` = '.(int) $child['id_tab'].' AND `id_parent` = '.(int) $parent['id_parent']);
             }
         }
 
