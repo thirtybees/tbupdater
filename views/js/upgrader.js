@@ -195,19 +195,21 @@
         if ($(this).val()) {
           $(this).after('<a class="confirmBeforeDelete btn btn-danger" href="index.php?tab=AdminModules&configure=tbupdater&token=' + window.tbupdater.token + '&amp;deletebackup&amp;name=' + $(this).val() + '"><i class="icon icon-times"></i> Delete</a>');
           $(this).next().click(function (e) {
+            e.preventDefault();
             window.swal({
               title: 'Delete backup',
               text: 'Are you sure you want to delete this backup?',
               type: 'warning',
               showCancelButton: true,
             }).then(
-              function () {},
-              function (dismiss) {
-                if (dismiss === 'cancel' || dismiss === 'close') {
-                  e.preventDefault();
+              function (value) {
+                if (value) {
+                  window.location.href = e.target.href;
                 }
               }
             );
+
+            return false;
           });
         }
 
@@ -591,8 +593,10 @@
           showCancelButton: true,
         })
           .then(
-            function () {
-              doAjaxRequest('rollback', response.nextParams);
+            function (value) {
+              if (value) {
+                doAjaxRequest('rollback', response.nextParams);
+              }
             }
           );
       } else if (action === 'upgradeNow' && typeof response.nextErrors !== 'undefined' && $.isArray(response.nextErrors)) {
