@@ -994,9 +994,13 @@ class TbUpdater extends Module
                 continue;
             }
 
-            $range = new Expression($versionInfo['compatibility']);
-            if ($tbVersion->satisfies($range)) {
-                $versions[] = $versionNumber;
+            try {
+                $range = new Expression($versionInfo['compatibility']);
+                if ($tbVersion->satisfies($range)) {
+                    $versions[] = $versionNumber;
+                }
+            } catch (Exception $e) {
+                Logger::addLog("thirty bees updater: {$e->getMessage()}");
             }
         }
 
