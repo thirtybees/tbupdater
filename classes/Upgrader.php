@@ -196,6 +196,7 @@ class Upgrader
                 'beta'   => json_decode(file_get_contents(_PS_MODULE_DIR_.'tbupdater/json/thirtybees-beta.json'), true),
                 'rc'     => json_decode(file_get_contents(_PS_MODULE_DIR_.'tbupdater/json/thirtybees-rc.json'), true),
                 'stable' => json_decode(file_get_contents(_PS_MODULE_DIR_.'tbupdater/json/thirtybees-stable.json'), true),
+                'file'   => json_decode(file_get_contents(_PS_MODULE_DIR_.'tbupdater/json/thirtybees-stable.json'), true),
             ];
         }
 
