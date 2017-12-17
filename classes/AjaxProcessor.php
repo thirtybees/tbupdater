@@ -3,7 +3,7 @@
  * 2007-2016 PrestaShop
  *
  * thirty bees is an extension to the PrestaShop e-commerce software developed by PrestaShop SA
- * Copyright (C) 2017 thirty bees
+ * Copyright (C) 2017-2018 thirty bees
  *
  * NOTICE OF LICENSE
  *
@@ -17,7 +17,7 @@
  *
  * @author    thirty bees <modules@thirtybees.com>
  * @author    PrestaShop SA <contact@prestashop.com>
- * @copyright 2017 thirty bees
+ * @copyright 2017-2018 thirty bees
  * @copyright 2007-2016 PrestaShop SA
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  PrestaShop is an internationally registered trademark & property of PrestaShop SA
@@ -2557,7 +2557,7 @@ class AjaxProcessor
         $version = _TB_VERSION_;
         $this->backupName = "v{$version}_{$date}-{$rand}";
         $this->backupFilesFilename = 'auto-backupfiles_'.$this->backupName.'.zip';
-        $this->backupDbFilename = 'auto-backupdb_'.$this->backupName.'.sql';
+        $this->backupDbFilename = 'auto-backupdb_XXXXXX_'.$this->backupName.'.sql';
 
         $this->keepImages = UpgraderTools::getConfig(UpgraderTools::BACKUP_IMAGES);
         $this->keepMails = UpgraderTools::getConfig(UpgraderTools::KEEP_MAILS);
