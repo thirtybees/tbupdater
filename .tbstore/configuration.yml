@@ -1,0 +1,12 @@
+module_name: thirty bees updater
+compatible_versions: 1.0.0+
+author: thirty bees
+category: back office
+tags:
+  - update
+  - upgrade
+description_short: Use this module to keep the core files and modules updated!
+description: description.md
+images:
+  - image-1.png
+license: AFL 3.0
