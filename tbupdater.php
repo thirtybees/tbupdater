@@ -84,7 +84,7 @@ class TbUpdater extends Module
         $this->need_instance = 1;
 
         parent::__construct();
-        $this->displayName = $this->l('thirty bees updater');
+        $this->displayName = $this->l('thirty bees Updater');
         $this->description = $this->l('Use this module to keep the core files and modules updated!');
 
         if (isset(Context::getContext()->employee->id) && Context::getContext()->employee->id && isset(Context::getContext()->link) && is_object(Context::getContext()->link)) {
