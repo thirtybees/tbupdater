@@ -171,7 +171,7 @@ class Expression
             return static::xRangesToComparators($version);
         }
     }
-    
+
     /**
      * standardizes a single version (typeo'd version for BC)
      * @deprecated 2.1.0
