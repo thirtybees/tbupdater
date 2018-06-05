@@ -9,4 +9,11 @@ description_short: Use this module to keep the core files and modules updated!
 description: description.md
 images:
   - image-1.png
+gdpr_compliant: false
 license: AFL 3.0
+php_version:
+  - 5.5
+  - 5.6
+  - 7.0
+  - 7.1
+  - 7.2
