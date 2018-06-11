@@ -3630,23 +3630,6 @@ exit;
     }
 
     /**
-     * @param      $serialized
-     * @param bool $object
-     *
-     * @return bool|mixed
-     *
-     * @deprecated Use unserialize instead
-     */
-    public static function unSerialize($serialized, $object = false)
-    {
-        if (is_string($serialized) && (strpos($serialized, 'O:') === false || !preg_match('/(^|;|{|})O:[0-9]+:"/', $serialized)) && !$object || $object) {
-            return @unserialize($serialized);
-        }
-
-        return false;
-    }
-
-    /**
      * Reproduce array_unique working before php version 5.2.9
      *
      * @param array $array
