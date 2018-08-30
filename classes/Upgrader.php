@@ -373,6 +373,11 @@ class Upgrader
      */
     private function getModuleVersion()
     {
-        return Db::getInstance()->getValue("SELECT version FROM "._DB_PREFIX_."module WHERE name = 'tbupdater'");
+          return Db::getInstance()->getValue(
+              (new DbQuery())
+                  ->select('`version`')
+                  ->from('module')
+                  ->where("`name` = 'tbupdater'")
+          );
     }
 }
