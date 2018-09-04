@@ -870,7 +870,7 @@ class AjaxProcessor
 
             // Save in an array in `fileActions`
             // Delete actions at back of array, we will process those first
-            FileActions::addFileActions($addFilesForUpgrade + $deleteFilesForUpgrade);
+            FileActions::addFileActions(array_merge(array_values($addFilesForUpgrade), array_values($deleteFilesForUpgrade)));
             $fileActions = FileActions::getFileActions(UpgraderTools::$loopUpgradeFiles);
 
             if (empty($fileActions)) {
@@ -2318,7 +2318,7 @@ class AjaxProcessor
         switch ($fileAction['action']) {
             case 'delete':
                 if (is_dir($dest)) {
-                    UpgraderTools::rrmdir($dest);
+                    Tools::deleteDirectory($dest);
                     $this->nextQuickInfo[] = sprintf($this->l('Recursively removed directory %1$s.'), $path);
                 } else {
                     @unlink($dest);

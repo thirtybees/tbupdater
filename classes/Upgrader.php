@@ -153,6 +153,7 @@ class Upgrader
      */
     public function checkTbVersion($forceRefresh = false)
     {
+        $semver = new Version($this->getModuleVersion());
         if ($forceRefresh || !$this->allChannelsAreCached()) { // || $this->shouldRefresh()) {
             $guzzle = new Client(
                 [
@@ -195,7 +196,7 @@ class Upgrader
             ];
         }
 
-        $channelWithLatestVersion = $this->findChannelWithLatestVersion($this->selectedChannel);
+        $channelWithLatestVersion = $this->findChannelWithLatestVersion($this->selectedChannel, $semver);
         if (!$channelWithLatestVersion) {
             $this->version = '';
             $this->channel = $this->selectedChannel;
@@ -209,8 +210,8 @@ class Upgrader
         }
         $versionsInfo = $this->versionInfo[$channelWithLatestVersion];
         $highestVersion = '0.0.0';
-        foreach (array_keys($versionsInfo) as $version) {
-            if (Version::gt($version, $highestVersion)) {
+        foreach ($versionsInfo as $version => $versionInfo) {
+            if (Version::gt($version, $highestVersion) && $semver->satisfies(new Expression($versionInfo['compatibility']))) {
                 $highestVersion = $version;
             }
         }
@@ -291,14 +292,10 @@ class Upgrader
      *
      * @since 1.0.0
      */
-    protected function findChannelWithLatestVersion($channel)
+    protected function findChannelWithLatestVersion($channel, $semver)
     {
         $latestVersion = '0.0.0';
         $channelWithLatest = false;
-
-        // Check if update module needs to be updated
-        // FIXME: get module version from database and no longer hard-code
-        $semver = new Version('1.2.0');
 
         $checkVersions = [];
         foreach (['stable', 'rc', 'beta', 'alpha'] as $type) {
@@ -365,5 +362,22 @@ class Upgrader
         }
 
         return $cached;
+    }
+
+    /**
+     * Returns version of tbupdater module
+     *
+     * @return string
+     *
+     * @since 1.3.2
+     */
+    private function getModuleVersion()
+    {
+          return Db::getInstance()->getValue(
+              (new DbQuery())
+                  ->select('`version`')
+                  ->from('module')
+                  ->where("`name` = 'tbupdater'")
+          );
     }
 }
