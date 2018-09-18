@@ -350,9 +350,9 @@ class Employee extends ObjectModel
     }
 
     /**
-     * Return employee instance from its e-mail (optionnaly check password)
+     * Return employee instance from its e-mail (optionally check password)
      *
-     * @param string $email             e-mail
+     * @param string $email             E-mail
      * @param string $plainTextPassword Password is also checked if specified
      * @param bool   $activeOnly        Filter employee by active status
      *
@@ -374,20 +374,12 @@ class Employee extends ObjectModel
         if ($activeOnly) {
             $sql->where('`active` = 1');
         }
-
         $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($sql);
-        if ($plainTextPassword && !password_verify($plainTextPassword, $result['passwd'])) {
-            $sql = new DbQuery();
-            $sql->select('*');
-            $sql->from('employee');
-            $sql->where('`email` = \''.pSQL($email).'\'');
-            $sql->where('`passwd` = \''.md5(_COOKIE_KEY_.$plainTextPassword).'\'');
-            if ($activeOnly) {
-                $sql->where('`active` = 1');
-            }
 
-            $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($sql);
-            if ($result) {
+        // If password is provided but doesn't match.
+        if ($plainTextPassword && !password_verify($plainTextPassword, $result['passwd'])) {
+            // Check if it matches the legacy md5 hashing and, if it does, rehash it.
+            if (Validate::isMd5($result['passwd']) && $result['passwd'] === md5(_COOKIE_KEY_.$plainTextPassword)) {
                 $newHash = Tools::hash($plainTextPassword);
                 Db::getInstance()->update(
                     bqSQL(static::$definition['table']),
