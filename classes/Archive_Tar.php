@@ -43,7 +43,7 @@ namespace TbUpdaterModule;
 
 // If the PEAR class cannot be loaded via the autoloader,
 // then try to require_once it from the PHP include path.
-if (!class_exists('PsOneSigMigrator\\PEAR')) {
+if (!class_exists('PEAR')) {
     require_once 'PEAR.php';
 }
 
@@ -661,7 +661,7 @@ class Archive_Tar extends PEAR
         }
 
         // ----- Get the arguments
-        $v_att_list = & func_get_args();
+        $v_att_list = func_get_args();
 
         // ----- Read the attributes
         $i = 0;
