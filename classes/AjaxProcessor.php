@@ -287,7 +287,11 @@ class AjaxProcessor
             return;
         }
 
+        $timestamp = time();
         $result = $this->upgrader->downloadLast($this->tools->downloadPath);
+        $seconds = (string) (time() - $timestamp);
+        $this->nextQuickInfo[] = sprintf($this->l('Downloads took %s seconds.'), $seconds);
+
         if ($result) {
             $md5Core = md5_file($this->tools->downloadPath.DIRECTORY_SEPARATOR
                                 .'thirtybees-v'.$this->upgrader->version.'.zip');
