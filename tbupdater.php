@@ -603,7 +603,7 @@ class TbUpdater extends Module
             $allowedArray['root_writable'] = $this->getRootWritable();
             $allowedArray['admin_au_writable'] = ConfigurationTest::testDir($adminDir.DIRECTORY_SEPARATOR.$tools->autoupgradeDir, false, $report, false);
             $allowedArray['shop_deactivated'] = (!Configuration::get('PS_SHOP_ENABLE') || (isset($_SERVER['HTTP_HOST']) && in_array($_SERVER['HTTP_HOST'], ['127.0.0.1', 'localhost'])));
-            $allowedArray['cache_deactivated'] = !(defined('_PS_CACHE_ENABLED_') && _PS_CACHE_ENABLED_);
+            $allowedArray['cache_deactivated'] = ! Configuration::get('TB_CACHE_ENABLED');
             $allowedArray['module_version_ok'] = true;
             $allowedArray['max_execution_time'] = !$maxExecutionTime || $maxExecutionTime >= 30;
         }
