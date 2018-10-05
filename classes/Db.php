@@ -63,10 +63,6 @@ abstract class Db
      */
     protected $database;
     /**
-     * @var bool
-     */
-    protected $isCacheEnabled;
-    /**
      * @var mixed Ressource link
      */
     protected $link;
@@ -103,7 +99,6 @@ abstract class Db
         $this->user = $user;
         $this->password = $password;
         $this->database = $database;
-        $this->isCacheEnabled = (defined('_PS_CACHE_ENABLED_')) ? _PS_CACHE_ENABLED_ : false;
 
         if (!defined('_PS_DEBUG_SQL_')) {
             define('_PS_DEBUG_SQL_', false);
