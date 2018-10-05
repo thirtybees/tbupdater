@@ -856,9 +856,8 @@ class AjaxProcessor
 
                 return false;
             }
-            $count = FileActions::count();
             $this->next = 'upgradeFiles';
-            $this->nextDesc = $this->nextQuickInfo[] = sprintf($this->l('%s files will be upgraded.'), $count);
+            $this->nextDesc = $this->nextQuickInfo[] = sprintf($this->l('Will remove %s files and replace/add %s files.'), count($deleteFilesForUpgrade), count($addFilesForUpgrade));
             $this->stepDone = false;
 
             return true;
