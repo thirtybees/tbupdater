@@ -1800,7 +1800,7 @@ class AjaxProcessor
         }
 
         // delete cache filesystem if activated
-        if (defined('_PS_CACHE_ENABLED_') && _PS_CACHE_ENABLED_) {
+        if (Configuration::get('TB_CACHE_ENABLED')) {
             $depth = (int) $this->db->getValue(
                 'SELECT value
 				FROM '._DB_PREFIX_.'configuration
@@ -1940,7 +1940,8 @@ class AjaxProcessor
             ['_DB_PREFIX_', _DB_PREFIX_],
             ['_MYSQL_ENGINE_', $mysqlEngine],
             ['_PS_CACHING_SYSTEM_', (defined('_PS_CACHING_SYSTEM_') && in_array(_PS_CACHING_SYSTEM_, $caches)) ? _PS_CACHING_SYSTEM_ : 'CacheMemcache'],
-            ['_PS_CACHE_ENABLED_', defined('_PS_CACHE_ENABLED_') ? _PS_CACHE_ENABLED_ : '0'],
+            // Retrocompatibility with 1.0.7 and before.
+            ['_PS_CACHE_ENABLED_', Configuration::get('TB_CACHE_ENABLED') ? '1' : '0'],
             ['_COOKIE_KEY_', _COOKIE_KEY_],
             ['_COOKIE_IV_', _COOKIE_IV_],
             ['_PS_CREATION_DATE_', defined("_PS_CREATION_DATE_") ? _PS_CREATION_DATE_ : date('Y-m-d')],
@@ -1954,8 +1955,9 @@ class AjaxProcessor
         if (defined('_RIJNDAEL_IV_')) {
             $datas[] = ['_RIJNDAEL_IV_', _RIJNDAEL_IV_];
         }
+        // Retrocompatibility with 1.0.7 and before.
         if (!defined('_PS_CACHE_ENABLED_')) {
-            define('_PS_CACHE_ENABLED_', '0');
+            define('_PS_CACHE_ENABLED_', Configuration::get('TB_CACHE_ENABLED') ? '1' : '0');
         }
         if (!defined('_MYSQL_ENGINE_')) {
             define('_MYSQL_ENGINE_', 'MyISAM');
