@@ -847,9 +847,10 @@ class AjaxProcessor
 
             // Save in an array in `fileActions`
             // Delete actions at back of array, we will process those first
-            FileActions::addFileActions(array_merge(array_values($addFilesForUpgrade), array_values($deleteFilesForUpgrade)));
-            $fileActions = FileActions::getFileActions(UpgraderTools::$loopUpgradeFiles);
+            FileActions::addFileActions(array_values($deleteFilesForUpgrade));
+            FileActions::addFileActions(array_values($addFilesForUpgrade));
 
+            $fileActions = FileActions::getFileActions(UpgraderTools::$loopUpgradeFiles);
             if (empty($fileActions)) {
                 $this->next = 'error';
                 $this->nextDesc = $this->nextErrors[] = $this->nextQuickInfo[] = $this->l('Unable to find files to upgrade.');
