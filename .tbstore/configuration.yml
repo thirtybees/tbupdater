@@ -5,6 +5,8 @@ category: administration
 tags:
   - update
   - upgrade
+  = updater
+  - tbupdater
 description_short: Use this module to keep the core files and modules updated!
 description: description.md
 images:
