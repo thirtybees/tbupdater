@@ -2303,6 +2303,14 @@ class AjaxProcessor
                     @unlink($dest);
                     $this->nextQuickInfo[] = sprintf($this->l('Removed file %1$s.'), $path);
                 }
+
+                // Delete empty parent directories.
+                $parent = dirname($dest);
+                while (count(scandir($parent)) <= 2) { // 2 = '.' and '..'
+                    rmdir($parent);
+                    $parent = dirname($parent);
+                }
+
                 break;
 
             case 'add':
