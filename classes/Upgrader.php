@@ -154,9 +154,15 @@ class Upgrader
     public function checkTbVersion($forceRefresh = false)
     {
         if ($forceRefresh || !$this->allChannelsAreCached()) { // || $this->shouldRefresh()) {
+
+            // For a local api.thirtybees.com test server.
+            $source = str_replace('https://api.thirtybees.com/',
+                                  'http://localhost/api.thirtybees.com/',
+                                  self::CHANNELS_BASE_URI);
+
             $guzzle = new Client(
                 [
-                    'base_uri' => self::CHANNELS_BASE_URI,
+                    'base_uri' => $source,
                     'timeout'  => 10,
                     'verify'   => __DIR__.'/../cacert.pem',
                 ]
@@ -264,20 +270,29 @@ class Upgrader
         $extraDestPath = realpath($dest).DIRECTORY_SEPARATOR."thirtybees-extra-v{$this->version}.zip";
         if (!empty($this->requires)) {
             foreach ($this->requires as $dependency) {
-                Tools::copy("https://api.thirtybees.com/updates/packs/thirtybees-file-actions-v{$dependency}.json", realpath($dest).DIRECTORY_SEPARATOR."thirtybees-file-actions-v{$dependency}.json");
+                Tools::copy("http://localhost/api.thirtybees.com/updates/packs/thirtybees-file-actions-v{$dependency}.json", realpath($dest).DIRECTORY_SEPARATOR."thirtybees-file-actions-v{$dependency}.json");
             }
         }
         $fileActionsPath = realpath($dest).DIRECTORY_SEPARATOR."thirtybees-file-actions-v{$this->version}.json";
 
         if (!file_exists($coreDestPath)
             || md5_file($coreDestPath) !== $this->md5Core) {
-            Tools::copy($this->coreLink, $coreDestPath);
+            $source = str_replace('https://api.thirtybees.com/',
+                                  'http://localhost/api.thirtybees.com/',
+                                  $this->coreLink);
+            Tools::copy($source, $coreDestPath);
         }
         if (!file_exists($extraDestPath)
             || md5_file($extraDestPath) !== $this->md5Extra) {
-            Tools::copy($this->extraLink, $extraDestPath);
+            $source = str_replace('https://api.thirtybees.com/',
+                                  'http://localhost/api.thirtybees.com/',
+                                  $this->extraLink);
+            Tools::copy($source, $extraDestPath);
         }
-        Tools::copy($this->fileActionsLink, $fileActionsPath);
+        $source = str_replace('https://api.thirtybees.com/',
+                              'http://localhost/api.thirtybees.com/',
+                              $this->fileActionsLink);
+        Tools::copy($source, $fileActionsPath);
 
         return is_file($coreDestPath) && is_file($extraDestPath) && is_file($fileActionsPath);
     }

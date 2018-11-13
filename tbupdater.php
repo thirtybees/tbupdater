@@ -267,8 +267,14 @@ class TbUpdater extends Module
         $lastCheck = (int) Configuration::get(static::LAST_CHECK);
 
         if ($force || $lastCheck < (time() - static::CHECK_INTERVAL) || Tools::getValue($this->name.'CheckUpdate') || !@file_exists(__DIR__.'/cache/modules.json')) {
+
+            // For a local api.thirtybees.com test server.
+            $source = str_replace('https://api.thirtybees.com/',
+                                  'http://localhost/api.thirtybees.com/',
+                                  static::BASE_URL);
+
             $guzzle = new GuzzleHttp\Client([
-                'base_uri' => static::BASE_URL,
+                'base_uri' => $source,
                 'verify'   => _PS_TOOL_DIR_.'cacert.pem',
             ]);
 
@@ -938,6 +944,12 @@ class TbUpdater extends Module
     {
         $zipLocation = _PS_MODULE_DIR_.$moduleName.'.zip';
         if (@!file_exists($zipLocation)) {
+
+            // For a local api.thirtybees.com test server.
+            $location = str_replace('https://api.thirtybees.com/',
+                                    'http://localhost/api.thirtybees.com/',
+                                    $location);
+
             $guzzle = new \GuzzleHttp\Client([
                 'timeout' => 30,
                 'verify'  => _PS_TOOL_DIR_.'cacert.pem',
