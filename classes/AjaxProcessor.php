@@ -1686,7 +1686,7 @@ class AjaxProcessor
 
         // At this point, database upgrade is over.
         // Now we need to add all previous missing settings items, and reset cache and compile directories
-        $this->writeNewSettings();
+//        $this->writeNewSettings();
 
         // Settings updated, compile and cache directories must be emptied
         $arrayToClean = [
