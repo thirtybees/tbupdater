@@ -696,39 +696,6 @@ class Dispatcher
                 if (isset($this->routes[$idShop][Context::getContext()->language->id])) {
                     $routes = $this->routes[$idShop][Context::getContext()->language->id];
                     foreach ($routes as $route) {
-                        $fullRewrite = ltrim($uri, '/');
-                        if ($fullRewrite && $entity = UrlRewrite::lookup(ltrim($uri, '/'), Context::getContext()->language->id, $idShop)) {
-                            switch ($entity[0]['entity']) {
-                                case UrlRewrite::ENTITY_PRODUCT:
-                                    $_GET['id_product'] = (int) $entity[0]['id_entity'];
-                                    $controller = 'product';
-                                    break 2;
-                                case UrlRewrite::ENTITY_CATEGORY:
-                                    $_GET['id_category'] = (int) $entity[0]['id_entity'];
-                                    $controller = 'category';
-                                    break 2;
-                                case UrlRewrite::ENTITY_SUPPLIER:
-                                    $_GET['id_supplier'] = (int) $entity[0]['id_entity'];
-                                    $controller = 'supplier';
-                                    break 2;
-                                case UrlRewrite::ENTITY_MANUFACTURER:
-                                    $_GET['id_manufacturer'] = (int) $entity[0]['id_entity'];
-                                    $controller = 'manufacturer';
-                                    break 2;
-                                case UrlRewrite::ENTITY_CMS:
-                                    $_GET['id_cms'] = (int) $entity[0]['id_entity'];
-                                    $controller = 'cms';
-                                    break 2;
-                                case UrlRewrite::ENTITY_CMS_CATEGORY:
-                                    $_GET['id_cms_category'] = (int) $entity[0]['id_entity'];
-                                    $controller = 'cms';
-                                    break 2;
-                                case UrlRewrite::ENTITY_PAGE:
-                                    $meta = new Meta($entity[0]['id_entity']);
-                                    $controller = $meta->page;
-                                    break 2;
-                            }
-                        }
                         if (preg_match($route['regexp'], $uri, $m)
                             &&
                             (!in_array($route['controller'], ['product', 'category', 'supplier', 'manufacturer', 'cms', 'cms_category'])
