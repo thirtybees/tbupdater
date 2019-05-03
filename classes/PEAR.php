@@ -13,7 +13,7 @@
  * @author     Tomas V.V.Cox <cox@idecnet.com>
  * @author     Greg Beaver <cellog@php.net>
  * @copyright  1997-2010 The Authors
- * @license    http://opensource.org/licenses/bsd-license.php New BSD License
+ * @license    https://opensource.org/licenses/bsd-license.php New BSD License
  * @link       http://pear.php.net/package/PEAR
  * @since      File available since Release 0.1
  */
@@ -76,7 +76,7 @@ $GLOBALS['_PEAR_error_handler_stack']    = array();
  * @author     Tomas V.V. Cox <cox@idecnet.com>
  * @author     Greg Beaver <cellog@php.net>
  * @copyright  1997-2006 The PHP Group
- * @license    http://opensource.org/licenses/bsd-license.php New BSD License
+ * @license    https://opensource.org/licenses/bsd-license.php New BSD License
  * @version    Release: @package_version@
  * @link       http://pear.php.net/package/PEAR
  * @see        PEAR_Error
@@ -824,7 +824,7 @@ function _PEAR_call_destructors()
  * @author     Tomas V.V. Cox <cox@idecnet.com>
  * @author     Gregory Beaver <cellog@php.net>
  * @copyright  1997-2006 The PHP Group
- * @license    http://opensource.org/licenses/bsd-license.php New BSD License
+ * @license    https://opensource.org/licenses/bsd-license.php New BSD License
  * @version    Release: @package_version@
  * @link       http://pear.php.net/manual/en/core.pear.pear-error.php
  * @see        PEAR::raiseError(), PEAR::throwError()
