@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2017-2018 thirty bees
+ * Copyright (C) 2017-2019 thirty bees
  * Copyright (C) 2007-2016 PrestaShop
  *
  * NOTICE OF LICENSE
