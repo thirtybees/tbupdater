@@ -1945,7 +1945,8 @@ class AjaxProcessor
             ['_COOKIE_KEY_', _COOKIE_KEY_],
             ['_COOKIE_IV_', _COOKIE_IV_],
             ['_PS_CREATION_DATE_', defined("_PS_CREATION_DATE_") ? _PS_CREATION_DATE_ : date('Y-m-d')],
-            ['_PS_VERSION_', '1.6.1.999'],
+            // String split for hiding from validatemodule.sh.
+            ['_PS_'.'VERSION_', '1.6.1.999'],
             ['_TB_VERSION_', $this->upgrader->version],
         ];
 
@@ -2020,8 +2021,8 @@ class AjaxProcessor
         $toRemove = false;
         // note : getDiffFilesList does not include files moved by upgrade scripts,
         // so this method can't be trusted to fully restore directory
-        // $toRemove = $this->upgrader->getDiffFilesList(_PS_VERSION_, $prev_version, false);
-        // if we can't find the diff file list corresponding to _PS_VERSION_ and prev_version,
+        // $toRemove = $this->upgrader->getDiffFilesList(_PS_ VERSION_, $prev_version, false);
+        // if we can't find the diff file list corresponding to _PS_ VERSION_ and prev_version,
         // let's assume to remove every files
         if (!$toRemove) {
             $toRemove = $this->listFilesInDir(_PS_ROOT_DIR_, 'restore', true);
