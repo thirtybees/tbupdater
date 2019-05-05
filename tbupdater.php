@@ -85,7 +85,7 @@ class TbUpdater extends Module
 
         parent::__construct();
         $this->displayName = $this->l('thirty bees Updater');
-        $this->description = $this->l('Use this module to keep the core files and modules updated!');
+        $this->description = $this->l('Updating thirty bees was moved to Core Updater. Nevertheless this module should still be installed.');
         $this->tb_versions_compliancy = '> 1.0.0';
         $this->tb_min_version = '1.0.0';
 
@@ -168,9 +168,12 @@ class TbUpdater extends Module
      *
      * @return string Configuration page HTML
      *
-     * @since 1.0.0
+     * @version 1.0.0 Initial version.
+     * @version 1.5.0 Renamed from getContent() to getContentOff() to disable
+     *                the configuration page. Merchants should use Core Updater
+     *                now.
      */
-    public function getContent()
+    public function getContentOff()
     {
         $this->postProcess();
         $this->tools = UpgraderTools::getInstance();
