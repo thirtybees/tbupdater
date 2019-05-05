@@ -86,8 +86,8 @@ class TbUpdater extends Module
         parent::__construct();
         $this->displayName = $this->l('thirty bees Updater');
         $this->description = $this->l('Updating thirty bees was moved to Core Updater. Nevertheless this module should still be installed.');
-        $this->tb_versions_compliancy = '> 1.0.0';
-        $this->tb_min_version = '1.0.0';
+        $this->tb_versions_compliancy = '>= 1.0.8';
+        $this->tb_min_version = '1.0.8';
 
         if (isset(Context::getContext()->employee->id) && Context::getContext()->employee->id && isset(Context::getContext()->link) && is_object(Context::getContext()->link)) {
             $this->baseUrl = $this->context->link->getAdminLink('AdminModules', true).'&'.http_build_query([
