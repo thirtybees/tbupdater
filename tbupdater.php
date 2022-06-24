@@ -965,13 +965,13 @@ class TbUpdater extends Module
      * @param string $a
      * @param string $b
      *
-     * @return bool
+     * @return int
      *
      * @since 1.0.0
      */
     protected function compareVersionReverse($a, $b)
     {
-        return Version::lt($a, $b);
+        return Version::lt($a, $b) ? -1 : 1;
     }
 
     /**
