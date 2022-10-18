@@ -1124,8 +1124,14 @@ class TbUpdater extends Module
             }
         }
 
-        @unlink($file);
-        @unlink(_PS_MODULE_DIR_.$moduleName.'backup');
+        if (file_exists($file)) {
+            unlink($file);
+        }
+
+        $backupFile = PS_MODULE_DIR_.$moduleName.'backup';
+        if (file_exists($backupFile)) {
+            unlink($backupFile);
+        }
         $this->recursiveDeleteOnDisk($tmpFolder);
 
         if ($success) {
