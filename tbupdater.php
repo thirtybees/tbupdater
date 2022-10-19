@@ -163,7 +163,7 @@ class TbUpdater extends Module
     {
         $cookie = Context::getContext()->cookie->getFamily('shopContext');
 
-        return (int) Tools::substr($cookie['shopContext'], 2, count($cookie['shopContext']));
+        return (int) substr($cookie['shopContext'], 2, count($cookie['shopContext']));
     }
 
     /**
@@ -295,12 +295,12 @@ class TbUpdater extends Module
             }
 
             $currentVersion = new Version(_TB_VERSION_);
-            $localModules = Tools::strtolower(Configuration::get('PS_LOCALE_COUNTRY'));
+            $localModules = strtolower((string)Configuration::get('PS_LOCALE_COUNTRY'));
 
             $promises = [
-                'updates' => $guzzle->getAsync("channel/{$channel}.json"),
+                'updates' => $guzzle->getAsync("channel/$channel.json"),
                 'modules' => $guzzle->getAsync("modules/all.json"),
-                'country' => $guzzle->getAsync("modules/{$localModules}.json"),
+                'country' => $guzzle->getAsync("modules/$localModules.json"),
             ];
 
             $results = GuzzleHttp\Promise\settle($promises)->wait();
@@ -415,21 +415,18 @@ class TbUpdater extends Module
 
         if ($locale) {
             foreach ($modules as &$module) {
-                if (isset($module['displayName'][Tools::strtolower($locale)])) {
-                    $module['displayName'] = $module['displayName'][Tools::strtolower($locale)];
+                if (isset($module['displayName'][strtolower($locale)])) {
+                    $module['displayName'] = $module['displayName'][strtolower($locale)];
                 } elseif (isset($module['displayName']['en-us'])) {
                     $module['displayName'] = $module['displayName']['en-us'];
                 } else {
                     // Broken feed
                     continue;
                 }
-                if (isset($module['description'][Tools::strtolower($locale)])) {
-                    $module['description'] = $module['description'][Tools::strtolower($locale)];
+                if (isset($module['description'][strtolower($locale)])) {
+                    $module['description'] = $module['description'][strtolower($locale)];
                 } elseif (isset($module['description']['en-us'])) {
                     $module['description'] = $module['description']['en-us'];
-                } else {
-                    // Broken feed
-                    continue;
                 }
             }
         }
@@ -536,7 +533,7 @@ class TbUpdater extends Module
     public function postProcess()
     {
         if (Tools::isSubmit('checkForUpdates')) {
-            if ((bool) $this->checkForUpdates(true)) {
+            if ($this->checkForUpdates(true)) {
                 $this->context->controller->confirmations[] = $this->l('Module information has been updated');
             } else {
                 $this->context->controller->errors[] = $this->l('Unable to update module info');
@@ -605,7 +602,7 @@ class TbUpdater extends Module
             foreach ($fileList as $filename) {
                 // the following will match file or dir related to the selected backup
                 if (!empty($filename) && $filename[0] != '.' && $filename != 'index.php' && $filename != '.htaccess'
-                    && preg_match('#^(auto-backupfiles_|)'.preg_quote($name).'(\.zip|)$#', $filename, $matches)
+                    && preg_match('#^(auto-backupfiles_|)'.preg_quote($name).'(\.zip|)$#', $filename)
                 ) {
                     if (is_file($tools->backupPath.DIRECTORY_SEPARATOR.$filename)) {
                         $res &= unlink($tools->backupPath.DIRECTORY_SEPARATOR.$filename);
@@ -1113,7 +1110,6 @@ class TbUpdater extends Module
      */
     protected function extractModuleArchive($moduleName, $file, $redirect = true)
     {
-        $zipFolders = [];
         $tmpFolder = _PS_MODULE_DIR_.$moduleName.md5(time());
 
         if (@!file_exists($file)) {
@@ -1145,14 +1141,6 @@ class TbUpdater extends Module
             $this->addError($this->l('There was an error while extracting the module file (file may be corrupted).'));
             // Force a new check
             Configuration::updateGlobalValue(static::LAST_CHECK, 0);
-        } else {
-            //check if it's a real module
-            foreach ($zipFolders as $folder) {
-                if (!in_array($folder, ['.', '..', '.svn', '.git', '__MACOSX']) && !Module::getInstanceByName($folder)) {
-                    $this->addError(sprintf($this->l('The module %1$s that you uploaded is not a valid module.'), $folder));
-                    $this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$folder);
-                }
-            }
         }
 
         if (file_exists($file)) {
