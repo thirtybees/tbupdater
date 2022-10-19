@@ -960,21 +960,6 @@ class TbUpdater extends Module
     }
 
     /**
-     * Reverse compare version
-     *
-     * @param string $a
-     * @param string $b
-     *
-     * @return int
-     *
-     * @since 1.0.0
-     */
-    protected function compareVersionReverse($a, $b)
-    {
-        return Version::lt($a, $b) ? -1 : 1;
-    }
-
-    /**
      * Find the highest version of a module
      *
      * @param string $tbVersion      Current TB version
@@ -1009,7 +994,7 @@ class TbUpdater extends Module
             }
         }
 
-        usort($versions, ['self', 'compareVersionReverse']);
+        usort($versions, ['TbUpdaterModule\SemVer\Version', 'rcompare']);
         if (!empty($versions)) {
             return $versions[0];
         }
@@ -1128,7 +1113,7 @@ class TbUpdater extends Module
             unlink($file);
         }
 
-        $backupFile = PS_MODULE_DIR_.$moduleName.'backup';
+        $backupFile = _PS_MODULE_DIR_.$moduleName.'backup';
         if (file_exists($backupFile)) {
             unlink($backupFile);
         }
