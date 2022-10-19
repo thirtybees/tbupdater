@@ -72,6 +72,7 @@ class TbUpdater extends Module
     /**
      * ModSelfUpdate constructor.
      *
+     * @throws PrestaShopException
      * @since 1.0.0
      */
     public function __construct()
@@ -102,8 +103,8 @@ class TbUpdater extends Module
      * Install this module
      *
      * @return bool Whether this module was successfully installed
+     * @throws HTMLPurifier_Exception
      * @throws PrestaShopException
-     *
      * @since 1.0.0
      */
     public function install()
@@ -132,12 +133,14 @@ class TbUpdater extends Module
     /**
      * Update configuration value in ALL contexts
      *
-     * @param string $key    Configuration key
-     * @param mixed  $values Configuration values, can be string or array with id_lang as key
-     * @param bool   $html   Contains HTML
+     * @param string $key Configuration key
+     * @param mixed $values Configuration values, can be string or array with id_lang as key
+     * @param bool $html Contains HTML
      *
      * @return void
      *
+     * @throws HTMLPurifier_Exception
+     * @throws PrestaShopException
      * @since 1.0.0
      */
     public function updateAllValue($key, $values, $html = false)
@@ -168,6 +171,10 @@ class TbUpdater extends Module
      *
      * @return string Configuration page HTML
      *
+     * @throws PrestaShopException
+     * @throws SmartyException
+     * @throws HTMLPurifier_Exception
+     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @version 1.0.0 Initial version.
      * @version 1.5.0 Renamed from getContent() to getContentOff() to disable
      *                the configuration page. Merchants should use Core Updater
@@ -203,6 +210,8 @@ class TbUpdater extends Module
 
     /**
      * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
      */
     public function getUpdateContent()
     {
@@ -264,6 +273,10 @@ class TbUpdater extends Module
      * @return false|array Indicates whether the update failed or not needed (returns `false`)
      *                     Otherwise returns the list with modules
      *
+     * @throws HTMLPurifier_Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @since 1.0.0
      */
     public function checkForUpdates($force = false)
@@ -384,6 +397,10 @@ class TbUpdater extends Module
      *
      * @return array|bool|false|mixed
      *
+     * @throws HTMLPurifier_Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @since 1.0.0
      */
     public function getCachedModulesInfo($locale = null)
@@ -427,6 +444,10 @@ class TbUpdater extends Module
      *
      * @return bool
      *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws HTMLPurifier_Exception
+     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @since 1.0.0
      */
     public function installModule($moduleName)
@@ -460,6 +481,10 @@ class TbUpdater extends Module
      *
      * @return bool
      *
+     * @throws HTMLPurifier_Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @since 1.0.0
      */
     public function updateModule($moduleName)
@@ -483,6 +508,10 @@ class TbUpdater extends Module
      *
      * @return bool|mixed
      *
+     * @throws HTMLPurifier_Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @since 1.0.0
      */
     public function getModuleInfo($moduleName)
@@ -498,6 +527,10 @@ class TbUpdater extends Module
     /**
      * @return void
      *
+     * @throws HTMLPurifier_Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @since 1.0.0
      */
     public function postProcess()
@@ -592,6 +625,7 @@ class TbUpdater extends Module
     /**
      * @return array
      *
+     * @throws PrestaShopException
      * @since 1.0.0
      */
     public function getCheckCurrentPsConfig()
@@ -631,7 +665,7 @@ class TbUpdater extends Module
     }
 
     /**
-     * @return bool|mixed|string
+     * @return bool
      *
      * @since 1.0.0
      */
@@ -643,7 +677,7 @@ class TbUpdater extends Module
     }
 
     /**
-     * @return bool|null|string
+     * @return bool
      *
      * @since 1.0.0
      */
@@ -655,6 +689,7 @@ class TbUpdater extends Module
     /**
      * @return float|int
      *
+     * @throws PrestaShopException
      * @since 1.0.0
      */
     public function configOk()
@@ -917,6 +952,8 @@ class TbUpdater extends Module
      *
      * @return string
      *
+     * @throws PrestaShopException
+     * @throws SmartyException
      * @since 1.0.0
      */
     protected function displayBlockUpgradeButton()
@@ -936,6 +973,9 @@ class TbUpdater extends Module
      * @param string $location
      *
      * @return bool
+     * @throws HTMLPurifier_Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      * @since 1.0.0
      */
     protected function downloadModuleFromLocation($moduleName, $location)
@@ -962,12 +1002,15 @@ class TbUpdater extends Module
     /**
      * Find the highest version of a module
      *
-     * @param string $tbVersion      Current TB version
-     * @param array  $moduleVersions Module version info
+     * @param string $tbVersion Current TB version
+     * @param array $moduleVersions Module version info
      *
      * @return bool|string Version number
      *                     `false` if not found
      *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @since 1.0.0
      */
     protected function findHighestVersion($tbVersion, $moduleVersions)
@@ -1058,11 +1101,14 @@ class TbUpdater extends Module
      * Extracts a module archive to the `modules` folder
      *
      * @param string $moduleName Module name
-     * @param string $file     File source location
-     * @param bool   $redirect Whether there should be a redirection to the BO module page after extracting
+     * @param string $file File source location
+     * @param bool $redirect Whether there should be a redirection to the BO module page after extracting
      *
      * @return bool
      *
+     * @throws HTMLPurifier_Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      * @since 1.0.0
      */
     protected function extractModuleArchive($moduleName, $file, $redirect = true)
