@@ -82,7 +82,7 @@ class TbUpdater extends Module
         $this->version = '1.5.2';
         $this->author = 'thirty bees';
         $this->bootstrap = true;
-        $this->need_instance = 1;
+        $this->need_instance = false;
 
         parent::__construct();
         $this->displayName = $this->l('thirty bees Updater');
