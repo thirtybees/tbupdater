@@ -19,6 +19,7 @@
 
 use GuzzleHttp\Client;
 use TbUpdaterModule\SemVer\Expression;
+use TbUpdaterModule\SemVer\SemVerException;
 use TbUpdaterModule\SemVer\Version;
 use TbUpdaterModule\Upgrader;
 use TbUpdaterModule\UpgraderTools;
@@ -92,8 +93,8 @@ class TbUpdater extends Module
         parent::__construct();
         $this->displayName = $this->l('thirty bees Updater');
         $this->description = $this->l('Updating thirty bees was moved to Core Updater. Nevertheless this module should still be installed.');
-        $this->tb_versions_compliancy = '>= 1.0.8';
-        $this->tb_min_version = '1.0.8';
+        $this->tb_versions_compliancy = '>= 1.4.0';
+        $this->tb_min_version = '1.4.0';
 
         if (isset(Context::getContext()->employee->id) && Context::getContext()->employee->id && isset(Context::getContext()->link) && is_object(Context::getContext()->link)) {
             $this->baseUrl = $this->context->link->getAdminLink('AdminModules', true).'&'.http_build_query([
@@ -973,7 +974,7 @@ class TbUpdater extends Module
             ]);
             try {
                 $guzzle->get($location, ['sink' => $zipLocation]);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 return false;
             }
         }
@@ -1003,27 +1004,28 @@ class TbUpdater extends Module
             return false;
         }
 
-        $tbVersion = new Version($tbVersion);
+        try {
+            $tbVersion = new Version($tbVersion);
 
-        $versions = [];
-        foreach ($moduleVersions as $versionNumber => $versionInfo) {
-            if (!isset($versionInfo['compatibility']) || !$versionInfo['compatibility']) {
-                continue;
-            }
+            $versions = [];
+            foreach ($moduleVersions as $versionNumber => $versionInfo) {
+                if (!isset($versionInfo['compatibility']) || !$versionInfo['compatibility']) {
+                    continue;
+                }
 
-            try {
                 $range = new Expression($versionInfo['compatibility']);
                 if ($tbVersion->satisfies($range)) {
                     $versions[] = $versionNumber;
                 }
-            } catch (Exception $e) {
-                Logger::addLog("thirty bees updater: {$e->getMessage()}");
-            }
-        }
 
-        usort($versions, ['TbUpdaterModule\SemVer\Version', 'rcompare']);
-        if (!empty($versions)) {
-            return $versions[0];
+            }
+
+            usort($versions, ['TbUpdaterModule\SemVer\Version', 'rcompare']);
+            if (!empty($versions)) {
+                return $versions[0];
+            }
+        } catch (SemVerException $e) {
+            Logger::addLog("thirty bees updater: {$e->getMessage()}");
         }
 
         return false;
@@ -1076,7 +1078,6 @@ class TbUpdater extends Module
                     }
                 }
             }
-            reset($objects);
             rmdir($dir);
         }
     }
