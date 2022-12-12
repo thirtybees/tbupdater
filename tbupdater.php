@@ -17,6 +17,7 @@
  * @license   Academic Free License (AFL 3.0)
  */
 
+use GuzzleHttp\Client;
 use TbUpdaterModule\SemVer\Expression;
 use TbUpdaterModule\SemVer\Version;
 use TbUpdaterModule\Upgrader;
@@ -49,7 +50,11 @@ class TbUpdater extends Module
     const LATEST_CORE_MINOR = 'TB_LATEST_CORE_MINOR';
     const LATEST_CORE_MAJOR = 'TB_LATEST_CORE_MAJOR';
 
+    /**
+     * @var string
+     */
     public $baseUrl = '';
+
     /** @var array $upgradeOptions */
     public $upgradeOptions = [];
     /** @var array $backupOptions */
@@ -103,7 +108,6 @@ class TbUpdater extends Module
      * Install this module
      *
      * @return bool Whether this module was successfully installed
-     * @throws HTMLPurifier_Exception
      * @throws PrestaShopException
      * @since 1.0.0
      */
@@ -139,7 +143,6 @@ class TbUpdater extends Module
      *
      * @return void
      *
-     * @throws HTMLPurifier_Exception
      * @throws PrestaShopException
      * @since 1.0.0
      */
@@ -173,8 +176,6 @@ class TbUpdater extends Module
      *
      * @throws PrestaShopException
      * @throws SmartyException
-     * @throws HTMLPurifier_Exception
-     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @version 1.0.0 Initial version.
      * @version 1.5.0 Renamed from getContent() to getContentOff() to disable
      *                the configuration page. Merchants should use Core Updater
@@ -273,10 +274,8 @@ class TbUpdater extends Module
      * @return false|array Indicates whether the update failed or not needed (returns `false`)
      *                     Otherwise returns the list with modules
      *
-     * @throws HTMLPurifier_Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @since 1.0.0
      */
     public function checkForUpdates($force = false)
@@ -397,10 +396,8 @@ class TbUpdater extends Module
      *
      * @return array|bool|false|mixed
      *
-     * @throws HTMLPurifier_Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @since 1.0.0
      */
     public function getCachedModulesInfo($locale = null)
@@ -443,8 +440,6 @@ class TbUpdater extends Module
      *
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws HTMLPurifier_Exception
-     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @since 1.0.0
      */
     public function installModule($moduleName)
@@ -478,10 +473,8 @@ class TbUpdater extends Module
      *
      * @return bool
      *
-     * @throws HTMLPurifier_Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @since 1.0.0
      */
     public function updateModule($moduleName)
@@ -505,10 +498,8 @@ class TbUpdater extends Module
      *
      * @return bool|mixed
      *
-     * @throws HTMLPurifier_Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @since 1.0.0
      */
     public function getModuleInfo($moduleName)
@@ -524,10 +515,8 @@ class TbUpdater extends Module
     /**
      * @return void
      *
-     * @throws HTMLPurifier_Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @since 1.0.0
      */
     public function postProcess()
@@ -970,7 +959,6 @@ class TbUpdater extends Module
      * @param string $location
      *
      * @return bool
-     * @throws HTMLPurifier_Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @since 1.0.0
@@ -979,7 +967,7 @@ class TbUpdater extends Module
     {
         $zipLocation = _PS_MODULE_DIR_.$moduleName.'.zip';
         if (@!file_exists($zipLocation)) {
-            $guzzle = new \GuzzleHttp\Client([
+            $guzzle = new Client([
                 'timeout' => 30,
                 'verify'  => _PS_TOOL_DIR_.'cacert.pem',
             ]);
@@ -1007,7 +995,6 @@ class TbUpdater extends Module
      *
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
-     * @throws \TbUpdaterModule\SemVer\SemVerException
      * @since 1.0.0
      */
     protected function findHighestVersion($tbVersion, $moduleVersions)
@@ -1103,7 +1090,6 @@ class TbUpdater extends Module
      *
      * @return bool
      *
-     * @throws HTMLPurifier_Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      * @since 1.0.0
