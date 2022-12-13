@@ -403,7 +403,12 @@ class TbUpdater extends Module
      */
     public function getCachedModulesInfo($locale = null)
     {
-        $modules = json_decode(@file_get_contents(__DIR__.'/cache/modules.json'), true);
+        $cacheFile = __DIR__.'/cache/modules.json';
+
+        $modules = file_exists($cacheFile)
+            ? json_decode(file_get_contents(__DIR__.'/cache/modules.json'), true)
+            : false;
+
         if (!$modules) {
             $modules = $this->checkForUpdates(true);
             if (!$modules) {
