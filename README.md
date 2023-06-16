@@ -1,10 +1,14 @@
+# DEPRECATED since thirty bees 1.5
+
+Updating native modules has been moved to thirty bees core. This module is not needed anymore
+
 # thirty bees Updater
 
-Use this module to keep the core files and modules updated!
+Use this module to keep thirty bees native modules updated
 
 ## Description
 
-This module provides the thirty bees update machinery. It provides classes used by the module updater as well as an interface to update the core installation.
+This module provides the thirty bees update machinery. It provides classes used by the module updater
 
 ## License
 
